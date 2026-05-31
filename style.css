@@ -1,0 +1,118 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+body {
+    background-color: #1e1e1e;
+    color: #ffffff;
+    display: flex;
+    height: 100vh;
+}
+
+/* Боковое меню */
+.navbar {
+    width: 250px;
+    background-color: #2d2d30;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    border-right: 2px solid #444;
+}
+
+.navbar h2 {
+    margin-bottom: 30px;
+    text-align: center;
+    color: #4da6ff;
+}
+
+.navbar ul {
+    list-style: none;
+}
+
+.navbar li {
+    margin-bottom: 15px;
+}
+
+.navbar button {
+    width: 100%;
+    padding: 10px;
+    background-color: #3e3e42;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: 0.3s;
+}
+
+.navbar button:hover {
+    background-color: #4da6ff;
+}
+
+/* Основной контент */
+.content {
+    flex-grow: 1;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Шахматная доска */
+.game-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.player-info {
+    font-size: 18px;
+    margin: 10px 0;
+    background: #2d2d30;
+    padding: 10px 20px;
+    border-radius: 5px;
+    width: 400px;
+    text-align: center;
+}
+
+.chessboard {
+    display: grid;
+    grid-template-columns: repeat(8, 50px);
+    grid-template-rows: repeat(8, 50px);
+    border: 4px solid #333;
+    width: 408px; /* 8 * 50 + border */
+}
+
+.square {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 35px;
+    cursor: pointer;
+    user-select: none;
+}
+
+/* Классическая тема (Дерево) */
+.square.light { background-color: #f0d9b5; color: #000; }
+.square.dark { background-color: #b58863; color: #000; }
+
+/* Синяя тема (Турнирная) */
+.theme-blue .square.light { background-color: #dee3e6; }
+.theme-blue .square.dark { background-color: #4b7399; }
