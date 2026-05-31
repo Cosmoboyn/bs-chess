@@ -3,18 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BS-Chess BETA</title>
+    <title>Лучшие по шахматам</title>
+    
     <link rel="stylesheet" href="style.css">
+    
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css">
 </head>
 <body>
 
     <nav class="navbar">
-        <h2>BS-Chess ♞</h2>
+        <h2>Шахматный Клуб</h2>
         <ul>
-            <li><button onclick="openTab('menu')">Меню</button></li>
+            <li><button onclick="openTab('menu')">Главное меню</button></li>
             <li><button onclick="openTab('game')">Игра</button></li>
             <li><button onclick="openTab('account')">Аккаунт</button></li>
-            <li><button onclick="openTab('rules')">Как играть</button></li>
+            <li><button onclick="openTab('rules')">Правила</button></li>
             <li><button onclick="openTab('settings')">Настройки</button></li>
         </ul>
     </nav>
@@ -30,7 +33,9 @@
         <section id="game" class="tab-content">
             <div class="game-header">
                 <div class="player-info">Игрок 2 (Черные)</div>
-                <div id="chessboard" class="chessboard"></div>
+                
+                <div id="chessboard" style="width: 400px"></div>
+                
                 <div class="player-info">Игрок 1 (Белые)</div>
             </div>
         </section>
@@ -38,8 +43,8 @@
         <section id="account" class="tab-content">
             <h1>Профиль игрока</h1>
             <div class="profile-card">
-                <p><strong>Имя:</strong> chess-man</p>
-                <p><strong>Рейтинг:</strong> 1300</p>
+                <p><strong>Никнейм:</strong> Гроссмейстер</p>
+                <p><strong>Рейтинг ЭЛО:</strong> 1200</p>
                 <p><strong>Сыграно партий:</strong> 0</p>
             </div>
         </section>
@@ -49,11 +54,6 @@
             <p>Шахматы — это стратегическая игра для двух игроков на доске 8х8.</p>
             <ul>
                 <li><strong>Цель:</strong> Поставить мат королю противника.</li>
-                <li><strong>Пешки:</strong> Ходят вперед, бьют по диагонали.</li>
-                <li><strong>Слон:</strong> Ходит только по диагоналям.</li>
-                <li><strong>Конь:</strong> Ходит буквой "Г".</li>
-                <li><strong>Ладья:</strong> Ходит по вертикали и горизонтали.</li>
-                <li><strong>Ферзь:</strong> Совмещает ходы ладьи и слона.</li>
             </ul>
         </section>
 
@@ -63,17 +63,14 @@
             <select id="time-control">
                 <option value="5">Блиц (5 мин)</option>
                 <option value="10">Рапид (10 мин)</option>
-                <option value="30">Классика (30 мин)</option>
-            </select>
-            <br><br>
-            <label for="theme">Цвет доски:</label>
-            <select id="theme" onchange="changeTheme(this.value)">
-                <option value="classic">Классическая (Дерево)</option>
-                <option value="blue">Турнирная (Синяя)</option>
             </select>
         </section>
 
     </main>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
 
     <script src="script.js"></script>
 </body>
