@@ -90,24 +90,7 @@ body {
     text-align: center;
 }
 
-.chessboard {
-    display: grid;
-    grid-template-columns: repeat(8, 50px);
-    grid-template-rows: repeat(8, 50px);
-    border: 4px solid #333;
-    width: 408px; /* 8 * 50 + border */
-}
 
-.square {
-    width: 50px;
-    height: 50px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-size: 35px;
-    cursor: pointer;
-    user-select: none;
-}
 
 /* Классическая тема (Дерево) */
 .square.light { background-color: #f0d9b5; color: #000; }
