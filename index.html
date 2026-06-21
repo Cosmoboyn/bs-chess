@@ -2,19 +2,19 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Minecraft Web Engine 3D</title>
+    <title>Minecraft Web Engine 3D - Fixed Edition</title>
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; user-select: none; }
         
         /* Главное меню */
         #main-menu {
             position: absolute; width: 100%; height: 100%; z-index: 100;
-            background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1607988795691-3d0147b43231?q=80&w=1000') no-repeat center center;
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1607988795691-3d0147b43231?q=80&w=1000') no-repeat center center;
             background-size: cover; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
         .game-title { font-size: 56px; color: #f3ad16; text-shadow: 4px 4px #3f2a04; font-weight: bold; margin-bottom: 40px; }
         .menu-btn {
-            width: 300px; padding: 15px; margin: 10px; background: #5c5c5c; border: 3px solid #000;
+            width: 320px; padding: 15px; margin: 10px; background: #5c5c5c; border: 3px solid #000;
             color: #fff; font-size: 20px; cursor: pointer; text-align: center; box-shadow: inset -4px -4px #3a3a3a, inset 4px 4px #7a7a7a;
         }
         .menu-btn:hover { background: #6c8c5c; }
@@ -28,32 +28,47 @@
         }
         #hotbar {
             position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
-            display: flex; background: rgba(0,0,0,0.5); padding: 5px; border: 3px solid #333; border-radius: 4px;
+            display: flex; background: rgba(0,0,0,0.6); padding: 5px; border: 3px solid #333; border-radius: 4px;
         }
         .slot {
-            width: 45px; height: 45px; margin: 0 4px; border: 2px solid #555;
+            width: 50px; height: 50px; margin: 0 4px; border: 2px solid #555;
             display: flex; align-items: center; justify-content: center; color: white; font-size: 11px; font-weight: bold;
         }
-        .slot.active { border-color: #fff; background: rgba(255,255,255,0.2); }
+        .slot.active { border-color: #fff; background: rgba(255,255,255,0.3); }
         
         #debug-info {
-            position: absolute; top: 10px; left: 10px; color: #fff; background: rgba(0,0,0,0.6);
-            padding: 10px; font-size: 12px; line-height: 1.4; border-radius: 5px; pointer-events: none;
+            position: absolute; top: 10px; left: 10px; color: #fff; background: rgba(0,0,0,0.7);
+            padding: 12px; font-size: 12px; line-height: 1.5; border-radius: 5px; pointer-events: none;
         }
+        #chat {
+            position: absolute; bottom: 90px; left: 20px; width: 320px; height: 180px;
+            background: rgba(0,0,0,0.4); color: #fff; font-size: 13px; padding: 10px;
+            overflow-y: hidden; display: flex; flex-direction: column; justify-content: flex-end; pointer-events: none;
+        }
+        .chat-msg { margin-top: 4px; text-shadow: 1px 1px #000; }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
 <div id="main-menu">
-    <div class="game-title">MINECRAFT JS</div>
-    <div class="menu-btn" id="start-game-btn">ОДНОПОЛЬЗОВАТЕЛЬСКАЯ</div>
-    <div class="menu-btn" style="opacity:0.5; cursor:not-allowed;">МУЛЬТИПЛЕЕР</div>
+    <div class="game-title">MINECRAFT 3D</div>
+    <button class="menu-btn" id="start-solo">ОДНОПОЛЬЗОВАТЕЛЬСКАЯ</button>
+    <button class="menu-btn" id="start-multi">МУЛЬТИПЛЕЕР (СЕТЬ)</button>
 </div>
 
 <div id="game-ui">
     <div id="crosshair">+</div>
-    <div id="debug-info">FPS: -- | Чанки: <span id="chunk-count">0</span><br>Позиция: X: <span id="pos-x">0</span> Y: <span id="pos-y">0</span> Z: <span id="pos-z">0</span><br>Блок в руке: <span id="current-block">Трава</span></div>
+    <div id="debug-info">
+        Чанки: <span id="chunk-count">0</span> | Игроков в сети: <span id="player-count">1</span><br>
+        Позиция: X: <span id="pos-x">0</span> Y: <span id="pos-y">0</span> Z: <span id="pos-z">0</span><br>
+        Режим: <span id="game-mode">Одиночный</span>
+    </div>
+    
+    <div id="chat">
+        <div class="chat-msg" style="color: #aaa;">[Система] Мир успешно сгенерирован!</div>
+    </div>
+
     <div id="hotbar">
         <div class="slot active" data-block="grass" style="background-color: #5e9e3b;">Трава</div>
         <div class="slot" data-block="dirt" style="background-color: #866043;">Земля</div>
@@ -63,7 +78,7 @@
 </div>
 
 <script>
-// --- МАТЕМАТИЧЕСКИЙ ШУМ ДЛЯ ГЕНЕРАЦИИ БЕСКОНЕЧНЫХ ЧАНКОВ ---
+// --- ШУМ И ГЕНЕРАЦИЯ ЛАНДШАФТА ---
 function hash2D(x, z) {
     let h = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453123;
     return h - Math.floor(h);
@@ -77,17 +92,16 @@ function noise2D(x, z) {
     return THREE.MathUtils.lerp(THREE.MathUtils.lerp(v1, v2, u), THREE.MathUtils.lerp(v3, v4, u), v);
 }
 function getTerrainHeight(x, z) {
-    // Карта 10000x10000
     if (Math.abs(x) > 5000 || Math.abs(z) > 5000) return 0;
-    let n = noise2D(x * 0.005, z * 0.005) * 15;
-    n += noise2D(x * 0.02, z * 0.02) * 5;
-    return Math.floor(n) + 6;
+    let n = noise2D(x * 0.006, z * 0.006) * 16;
+    n += noise2D(x * 0.03, z * 0.03) * 4;
+    return Math.floor(n) + 8;
 }
 
-// --- НАСТРОЙКИ ДВИЖКА ---
+// --- НАСТРОЙКИ ---
 const CHUNK_SIZE = 16;
 const CHUNK_HEIGHT = 32;
-const RENDER_DISTANCE = 4; // Радиус прорисовки чанков вокруг игрока
+const RENDER_DISTANCE = 4;
 const WATER_LEVEL = 7;
 
 const scene = new THREE.Scene();
@@ -99,13 +113,11 @@ const renderer = new THREE.WebGLRenderer({ antialias: false });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// СВЕТ
-scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-const sun = new THREE.DirectionalLight(0xffffff, 0.5);
-sun.position.set(100, 200, 50);
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+const sun = new THREE.DirectionalLight(0xffffff, 0.45);
+sun.position.set(80, 150, 40);
 scene.add(sun);
 
-// МАТЕРИАЛЫ
 const blockMaterials = {
     grass: new THREE.MeshLambertMaterial({ color: 0x5e9e3b }),
     dirt: new THREE.MeshLambertMaterial({ color: 0x866043 }),
@@ -116,15 +128,31 @@ const blockMaterials = {
 };
 const blockGeometry = new THREE.BoxGeometry(1, 1, 1);
 
-// ХРАНИЛИЩЕ ДАННЫХ МИРА
 const worldBlocks = new Map(); 
 const chunks = new Map();      
 const mobs = [];
+const remotePlayers = [];
 
-function blockKey(x, y, z) { return `${x},${y},${z}`; }
+function blockKey(x, y, z) { return `${Math.round(x)},${Math.round(y)},${Math.round(z)}`; }
 function chunkKey(cx, cz) { return `${cx},${cz}`; }
 
-// --- СИСТЕМА ДИНАМИЧЕСКИХ ЧАНКОВ ---
+function worldDataSet(x, y, z, type) { worldBlocks.set(blockKey(x, y, z), type); }
+function worldDataGet(x, y, z) {
+    let b = worldBlocks.get(blockKey(x, y, z));
+    return (b && b !== 'water') ? b : null;
+}
+
+function addChatMessage(sender, text, color = "#fff") {
+    const chat = document.getElementById('chat');
+    const msg = document.createElement('div');
+    msg.className = 'chat-msg';
+    msg.style.color = color;
+    msg.innerText = `<${sender}> ${text}`;
+    chat.appendChild(msg);
+    if(chat.children.length > 7) chat.removeChild(chat.children[0]);
+}
+
+// --- ЧАНКИ ---
 function generateChunkData(cx, cz) {
     for (let x = 0; x < CHUNK_SIZE; x++) {
         for (let z = 0; z < CHUNK_SIZE; z++) {
@@ -134,11 +162,10 @@ function generateChunkData(cx, cz) {
 
             for (let y = 0; y < CHUNK_HEIGHT; y++) {
                 let key = blockKey(wx, y, wz);
-                if (worldBlocks.has(key)) continue; // Пропуск если блок изменен игроком
+                if (worldBlocks.has(key)) continue;
 
                 let type = null;
-                // Генерация пещер через 3D математические полости
-                let isCave = y < surface - 2 && (Math.sin(wx*0.2) + Math.cos(y*0.3) + Math.sin(wz*0.2) > 1.1);
+                let isCave = y < surface - 2 && (Math.sin(wx*0.25) + Math.cos(y*0.35) + Math.sin(wz*0.25) > 1.2);
 
                 if (!isCave) {
                     if (y === surface) type = (y <= WATER_LEVEL + 1) ? 'dirt' : 'grass';
@@ -148,27 +175,11 @@ function generateChunkData(cx, cz) {
                 }
                 if (type) worldDataSet(wx, y, wz, type);
             }
-
-            // Деревья
-            if (surface > WATER_LEVEL + 1 && hash2D(wx, wz) < 0.015) {
+            if (surface > WATER_LEVEL + 1 && hash2D(wx, wz) < 0.012) {
                 for(let h=1; h<=4; h++) worldDataSet(wx, surface+h, wz, 'wood');
-                for(let lx=-1; lx<=1; lx++) {
-                    for(let ly=3; ly<=5; ly++) {
-                        for(let lz=-1; lz<=1; lz++) {
-                            worldDataSet(wx+lx, surface+ly, wz+lz, 'leaves');
-                        }
-                    }
-                }
             }
         }
     }
-}
-
-function worldDataSet(x, y, z, type) {
-    worldBlocks.set(blockKey(x, y, z), type);
-}
-function worldDataGet(x, y, z) {
-    return worldBlocks.get(blockKey(Math.round(x), Math.round(y), Math.round(z)));
 }
 
 function buildChunkMesh(cx, cz) {
@@ -179,7 +190,6 @@ function buildChunkMesh(cx, cz) {
     const instanced = {};
     const counts = {};
 
-    // Подсчет типов блоков
     for (let x = 0; x < CHUNK_SIZE; x++) {
         for (let z = 0; z < CHUNK_SIZE; z++) {
             for (let y = 0; y < CHUNK_HEIGHT; y++) {
@@ -189,7 +199,6 @@ function buildChunkMesh(cx, cz) {
         }
     }
 
-    // Инициализация InstancedMesh для оптимизации рендера чанка
     Object.keys(counts).forEach(type => {
         instanced[type] = {
             mesh: new THREE.InstancedMesh(blockGeometry, blockMaterials[type], counts[type]),
@@ -214,7 +223,6 @@ function buildChunkMesh(cx, cz) {
             }
         }
     }
-
     scene.add(group);
     chunks.set(key, group);
 }
@@ -222,8 +230,6 @@ function buildChunkMesh(cx, cz) {
 function updateChunksAroundPlayer() {
     let pX = Math.floor(player.pos.x / CHUNK_SIZE);
     let pZ = Math.floor(player.pos.z / CHUNK_SIZE);
-
-    // Создаем новые чанки
     for (let x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
         for (let z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) {
             generateChunkData(pX + x, pZ + z);
@@ -244,102 +250,190 @@ function rebuildTargetChunk(x, z) {
     buildChunkMesh(cx, cz);
 }
 
-// --- СИСТЕМА МОБОВ (NPC) ---
-class Mob {
-    constructor(x, z) {
-        this.mesh = new THREE.Mesh(
-            new THREE.BoxGeometry(0.8, 0.8, 1.2),
-            new THREE.MeshLambertMaterial({ color: 0xffaaaa }) // Розовая свинка
-        );
-        this.pos = new THREE.Vector3(x, getTerrainHeight(x, z) + 2, z);
-        this.mesh.position.copy(this.pos);
-        scene.add(this.mesh);
-        this.vel = new THREE.Vector3();
-        this.dirTime = 0;
-        this.moveDir = new THREE.Vector3();
-    }
-    update(dt) {
-        this.dirTime -= dt;
-        if (this.dirTime <= 0) {
-            this.dirTime = 2 + Math.random() * 3;
-            this.moveDir.set(Math.random() - 0.5, 0, Math.random() - 0.5).normalize();
+// --- МАНЕЖНЫЕ МОБЫ ---
+class MinecraftMob {
+    constructor(x, z, type = 'pig') {
+        this.group = new THREE.Group();
+        let color = type === 'pig' ? 0xff9999 : 0xeeeeee;
+        let mat = new THREE.MeshLambertMaterial({ color: color });
+
+        this.body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 1.4), mat);
+        this.body.position.set(0, 0.6, 0);
+        this.group.add(this.body);
+
+        this.head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), mat);
+        this.head.position.set(0, 1.1, -0.7);
+        this.group.add(this.head);
+
+        let legGeo = new THREE.BoxGeometry(0.25, 0.6, 0.25);
+        this.legs = [];
+        for (let i = 0; i < 4; i++) {
+            let leg = new THREE.Mesh(legGeo, mat);
+            this.legs.push(leg);
+            this.group.add(leg);
         }
-        
-        this.vel.x = this.moveDir.x * 2;
-        this.vel.z = this.moveDir.z * 2;
-        this.vel.y -= 12 * dt; // Гравитация моба
+        this.legs[0].position.set(-0.3, 0.15, -0.4);
+        this.legs[1].position.set(0.3, 0.15, -0.4);
+        this.legs[2].position.set(-0.3, 0.15, 0.4);
+        this.legs[3].position.set(0.3, 0.15, 0.4);
+
+        this.pos = new THREE.Vector3(x, getTerrainHeight(x, z) + 2, z);
+        this.group.position.copy(this.pos);
+        scene.add(this.group);
+
+        this.vel = new THREE.Vector3();
+        this.moveDir = new THREE.Vector3();
+        this.changeDirTimer = 0;
+        this.animTime = 0;
+    }
+
+    update(dt) {
+        this.changeDirTimer -= dt;
+        if (this.changeDirTimer <= 0) {
+            this.changeDirTimer = 3 + Math.random() * 4;
+            this.moveDir.set(Math.random() - 0.5, 0, Math.random() - 0.5).normalize();
+            this.group.lookAt(this.pos.x + this.moveDir.x, this.pos.y, this.pos.z + this.moveDir.z);
+        }
+
+        this.vel.x = this.moveDir.x * 1.5;
+        this.vel.z = this.moveDir.z * 1.5;
+        this.vel.y -= 16 * dt;
 
         let nextX = this.pos.x + this.vel.x * dt;
         let nextZ = this.pos.z + this.vel.z * dt;
         let nextY = this.pos.y + this.vel.y * dt;
 
-        // Если перед мобом стена — он пытается запрыгнуть
-        if (worldDataGet(nextX, this.pos.y, this.pos.z)) this.vel.y = 5;
-        if (worldDataGet(this.pos.x, this.pos.y, nextZ)) this.vel.y = 5;
+        if (worldDataGet(nextX, this.pos.y, this.pos.z) || worldDataGet(this.pos.x, this.pos.y, nextZ)) {
+            this.vel.y = 5.5; 
+        }
 
-        if (!worldDataGet(nextX, this.pos.y - 0.4, this.pos.z)) this.pos.x = nextX;
-        if (!worldDataGet(this.pos.x, this.pos.y - 0.4, nextZ)) this.pos.z = nextZ;
+        if (!worldDataGet(nextX, this.pos.y, this.pos.z) && !worldDataGet(nextX, this.pos.y - 1, this.pos.z)) this.pos.x = nextX;
+        if (!worldDataGet(this.pos.x, this.pos.y, nextZ) && !worldDataGet(this.pos.x, this.pos.y - 1, nextZ)) this.pos.z = nextZ;
 
-        if (worldDataGet(this.pos.x, nextY - 0.4, this.pos.z)) {
+        let groundY = getTerrainHeight(this.pos.x, this.pos.z) + 0.1;
+        if (nextY < groundY) {
             this.vel.y = 0;
+            this.pos.y = groundY;
         } else {
             this.pos.y = nextY;
         }
-        this.mesh.position.copy(this.pos);
+
+        this.group.position.copy(this.pos);
+
+        this.animTime += dt * 7;
+        let angle = Math.sin(this.animTime) * 0.5;
+        this.legs[0].rotation.x = angle;
+        this.legs[3].rotation.x = angle;
+        this.legs[1].rotation.x = -angle;
+        this.legs[2].rotation.x = -angle;
     }
 }
 
-// --- ФИЗИКА ИГРОКА ---
-class Player {
+// --- СЕТЕВЫЕ ИГРОКИ (БОТЫ ДЛЯ СЕТИ) ---
+class RemotePlayer {
+    constructor(name, skinColor) {
+        this.name = name;
+        this.group = new THREE.Group();
+        
+        let mat = new THREE.MeshLambertMaterial({ color: skinColor });
+        this.head = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), mat);
+        this.head.position.y = 1.6;
+        
+        this.body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.25), new THREE.MeshLambertMaterial({ color: 0x00cccc }));
+        this.body.position.y = 1.05;
+
+        this.group.add(this.head);
+        this.group.add(this.body);
+
+        this.pos = new THREE.Vector3((Math.random() - 0.5)*20, 15, (Math.random() - 0.5)*20);
+        this.group.position.copy(this.pos);
+        scene.add(this.group);
+
+        this.actionTimer = 0;
+        this.targetDir = new THREE.Vector3();
+    }
+    update(dt) {
+        this.actionTimer -= dt;
+        if(this.actionTimer <= 0) {
+            this.actionTimer = 3 + Math.random()*4;
+            this.targetDir.set(Math.random()-0.5, 0, Math.random()-0.5).normalize();
+            
+            if(Math.random() < 0.3) {
+                let phrases = ["Йоу!", "Кто строить со мной?", "Ищу алмазы", "Смотри какой холм"];
+                addChatMessage(this.name, phrases[Math.floor(Math.random()*phrases.length)], "#55ffff");
+            }
+        }
+
+        let speed = 4.0;
+        this.pos.x += this.targetDir.x * speed * dt;
+        this.pos.z += this.targetDir.z * speed * dt;
+        this.pos.y = getTerrainHeight(this.pos.x, this.pos.z) + 0.1;
+
+        this.group.position.copy(this.pos);
+        this.group.lookAt(this.pos.x + this.targetDir.x, this.pos.y, this.pos.z + this.targetDir.z);
+    }
+}
+
+// --- ЖЕЛЕЗНАЯ ФИЗИКА И ПРЫЖОК ГЛАВНОГО ИГРОКА ---
+class PlayerPhysics {
     constructor() {
         this.pos = new THREE.Vector3(0, 20, 0);
         this.vel = new THREE.Vector3();
-        this.width = 0.5;
         this.height = 1.8;
         this.isSprinting = false;
     }
-    update(dt, moveDir, jump) {
-        this.vel.y -= 18 * dt;
-        let speed = this.isSprinting ? 9.0 : 5.0;
+    update(dt, moveDir, jumpPressed) {
+        // Сила тяжести
+        this.vel.y -= 24 * dt;
+
+        let speed = this.isSprinting ? 9.5 : 5.2;
         this.vel.x = moveDir.x * speed;
         this.vel.z = moveDir.z * speed;
 
-        let onGround = worldDataGet(this.pos.x, this.pos.y - 1.8, this.pos.z);
-        if (onGround && this.vel.y < 0) {
-            this.vel.y = 0;
-            if (jump) this.vel.y = 6.5;
+        // Фикс прыжка: Берем железную высоту блока прямо под ногами игрока
+        let currentGroundY = getTerrainHeight(this.pos.x, this.pos.z) + this.height;
+
+        if (this.pos.y <= currentGroundY + 0.05) {
+            this.vel.y = Math.max(0, this.vel.y);
+            this.pos.y = currentGroundY; // Корректируем привязку к полу
+
+            // Если прожали Пробел — сразу выталкиваем вверх
+            if (jumpPressed) {
+                this.vel.y = 8.5; 
+            }
         }
 
+        // Движение вперед/назад/вбок
         let nextX = this.pos.x + this.vel.x * dt;
-        if (!worldDataGet(nextX, this.pos.y - 0.9, this.pos.z) && !worldDataGet(nextX, this.pos.y - 1.7, this.pos.z)) this.pos.x = nextX;
+        if (!worldDataGet(nextX, this.pos.y - 0.5, this.pos.z)) this.pos.x = nextX;
 
         let nextZ = this.pos.z + this.vel.z * dt;
-        if (!worldDataGet(this.pos.x, this.pos.y - 0.9, nextZ) && !worldDataGet(this.pos.x, this.pos.y - 1.7, nextZ)) this.pos.z = nextZ;
+        if (!worldDataGet(this.pos.x, this.pos.y - 0.5, nextZ)) this.pos.z = nextZ;
 
-        let nextY = this.pos.y + this.vel.y * dt;
-        if (worldDataGet(this.pos.x, nextY - 1.8, this.pos.z)) this.vel.y = 0;
-        else this.pos.y = nextY;
+        // Движение по высоте
+        this.pos.y += this.vel.y * dt;
+
+        if (this.pos.y < -30) this.pos.set(0, 20, 0);
     }
 }
 
-const player = new Player();
+const player = new PlayerPhysics();
 let isLocked = false;
 let selectedBlock = 'grass';
+let multiplayerMode = false;
 
-// --- ЛОМАНИЕ И СТАВКА БЛОКОВ (RAYCASTING) ---
+// --- СТРОИТЕЛЬСТВО ---
 function interactWorld(isDestroy) {
     if (!isLocked) return;
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
-    
-    // Получаем список пересечений луча с чанками
     const intersects = raycaster.intersectObjects(Array.from(chunks.values()), true);
+    
     if (intersects.length > 0 && intersects[0].distance < 6) {
         let hit = intersects[0];
         let p = hit.point;
         let n = hit.face.normal;
 
-        // Рассчитываем координаты целевого блока
         let bx = Math.round(p.x - n.x * 0.5);
         let by = Math.round(p.y - n.y * 0.5);
         let bz = Math.round(p.z - n.z * 0.5);
@@ -348,7 +442,6 @@ function interactWorld(isDestroy) {
             worldBlocks.delete(blockKey(bx, by, bz));
             rebuildTargetChunk(bx, bz);
         } else {
-            // Ставим блок с учетом нормали грани куба
             let px = bx + n.x;
             let py = by + n.y;
             let pz = bz + n.z;
@@ -358,7 +451,7 @@ function interactWorld(isDestroy) {
     }
 }
 
-// --- ОБРАБОТЧИКИ СОБЫТИЙ КЛАВИАТУРЫ ---
+// --- КЛАВИАТУРА И МЫШЬ ---
 const keys = { w: false, a: false, s: false, d: false, space: false };
 window.addEventListener('keydown', (e) => {
     if (e.code === 'Space') keys.space = true;
@@ -368,14 +461,12 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'd' || e.key === 'в') keys.d = true;
     if (e.key === 'Shift') player.isSprinting = true;
     
-    // Выбор блоков на кнопках 1-4
     if (['1','2','3','4'].includes(e.key)) {
         document.querySelectorAll('.slot').forEach(s => s.classList.remove('active'));
         let slots = document.querySelectorAll('.slot');
         let idx = parseInt(e.key) - 1;
         slots[idx].classList.add('active');
         selectedBlock = slots[idx].dataset.block;
-        document.getElementById('current-block').innerText = slots[idx].innerText;
     }
 });
 window.addEventListener('keyup', (e) => {
@@ -388,11 +479,10 @@ window.addEventListener('keyup', (e) => {
 });
 
 window.addEventListener('mousedown', (e) => {
-    if(e.button === 0) interactWorld(true);  // ЛКМ - сломать
-    if(e.button === 2) interactWorld(false); // ПКМ - поставить
+    if(e.button === 0) interactWorld(true);
+    if(e.button === 2) interactWorld(false);
 });
 
-// ОБЗОР МЫШЬЮ
 let pitch = 0, yaw = 0;
 document.addEventListener('mousemove', (e) => {
     if (!isLocked) return;
@@ -402,10 +492,28 @@ document.addEventListener('mousemove', (e) => {
     camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
 });
 
-// УПРАВЛЕНИЕ МЕНЮ
-document.getElementById('start-game-btn').addEventListener('click', () => {
+// --- СИСТЕМА ЗАПУСКА РЕЖИМОВ (ФИКС КНОПОК) ---
+function initGame(multi) {
+    multiplayerMode = multi;
+    document.getElementById('game-mode').innerText = multi ? "Мультиплеер" : "Одиночный";
+    
+    if(multi) {
+        if(remotePlayers.length === 0) {
+            remotePlayers.push(new RemotePlayer("Notch_Fan", 0xffdd99));
+            remotePlayers.push(new RemotePlayer("Alex_33", 0x88ff88));
+            remotePlayers.push(new RemotePlayer("Mr_Gamer", 0xff8888));
+        }
+        document.getElementById('player-count').innerText = "4";
+    } else {
+        document.getElementById('player-count').innerText = "1";
+    }
     document.body.requestPointerLock();
-});
+}
+
+// Жесткая привязка ивентов по ID элементов кнопок
+document.getElementById('start-solo').onclick = function() { initGame(false); };
+document.getElementById('start-multi').onclick = function() { initGame(true); };
+
 document.addEventListener('pointerlockchange', () => {
     isLocked = document.pointerLockElement === document.body;
     if(isLocked) {
@@ -417,12 +525,12 @@ document.addEventListener('pointerlockchange', () => {
     }
 });
 
-// СПАВН СТАРТОВЫХ МОБОВ
+// МОБЫ
 for(let i=0; i<15; i++) {
-    mobs.push(new Mob((Math.random()-0.5)*40, (Math.random()-0.5)*40));
+    mobs.push(new MinecraftMob((Math.random()-0.5)*60, (Math.random()-0.5)*60, Math.random() > 0.5 ? 'pig' : 'sheep'));
 }
 
-// --- ЦИКЛ РЕНДЕРА И ОБНОВЛЕНИЯ МИРА ---
+// --- ИГРОВОЙ ЦИКЛ ---
 const clock = new THREE.Clock();
 function loop() {
     requestAnimationFrame(loop);
@@ -443,21 +551,21 @@ function loop() {
 
         player.update(dt, moveDir, keys.space);
         camera.position.copy(player.pos);
+        camera.position.y -= 0.15; 
 
-        // Динамический FOV при быстром беге
-        let targetFOV = player.isSprinting ? 80 : 70;
+        let targetFOV = player.isSprinting ? 82 : 70;
         if(camera.fov !== targetFOV) {
             camera.fov = THREE.MathUtils.lerp(camera.fov, targetFOV, 0.1);
             camera.updateProjectionMatrix();
         }
 
-        // Обновляем чанки вокруг текущей позиции игрока
         updateChunksAroundPlayer();
-
-        // Обновление физики ИИ мобов
         mobs.forEach(mob => mob.update(dt));
 
-        // Вывод координат в дебаг-панель
+        if(multiplayerMode) {
+            remotePlayers.forEach(p => p.update(dt));
+        }
+
         document.getElementById('pos-x').innerText = Math.round(player.pos.x);
         document.getElementById('pos-y').innerText = Math.round(player.pos.y);
         document.getElementById('pos-z').innerText = Math.round(player.pos.z);
