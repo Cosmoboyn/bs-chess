@@ -2,20 +2,25 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Minecraft Web Engine 3D - Fixed Edition</title>
+    <title>Minecraft Web Engine 3D - Optimized</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #000; font-family: 'Courier New', Courier, monospace; user-select: none; }
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #141414; font-family: 'Courier New', Courier, monospace; user-select: none; }
         
-        /* Главное меню */
+        /* Главное меню в стиле Minecraft */
         #main-menu {
             position: absolute; width: 100%; height: 100%; z-index: 100;
-            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1607988795691-3d0147b43231?q=80&w=1000') no-repeat center center;
-            background-size: cover; display: flex; flex-direction: column; align-items: center; justify-content: center;
+            background: #2c2c2c; display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .game-title { font-size: 56px; color: #f3ad16; text-shadow: 4px 4px #3f2a04; font-weight: bold; margin-bottom: 40px; }
+        .game-title { font-size: 52px; color: #f3ad16; text-shadow: 4px 4px #3f2a04; font-weight: bold; margin-bottom: 30px; }
+        
+        /* Настройка профиля */
+        .profile-settings { background: rgba(0,0,0,0.4); padding: 15px; border-radius: 4px; margin-bottom: 20px; border: 2px solid #555; text-align: center; color: white; }
+        .profile-settings input, .profile-settings tragic { margin: 5px; padding: 8px; background: #222; border: 2px solid #555; color: white; font-family: monospace; }
+        .profile-settings label { font-size: 14px; display: block; margin-bottom: 5px; }
+
         .menu-btn {
             width: 320px; padding: 15px; margin: 10px; background: #5c5c5c; border: 3px solid #000;
-            color: #fff; font-size: 20px; cursor: pointer; text-align: center; box-shadow: inset -4px -4px #3a3a3a, inset 4px 4px #7a7a7a;
+            color: #fff; font-size: 18px; cursor: pointer; text-align: center; box-shadow: inset -4px -4px #3a3a3a, inset 4px 4px #7a7a7a;
         }
         .menu-btn:hover { background: #6c8c5c; }
 
@@ -23,7 +28,7 @@
         #game-ui { display: none; }
         #crosshair {
             position: absolute; top: 50%; left: 50%; width: 20px; height: 20px;
-            transform: translate(-50%, -50%); color: rgba(255,255,255,0.7); font-size: 28px;
+            transform: translate(-50%, -50%); color: rgba(255,255,255,0.8); font-size: 28px;
             pointer-events: none; text-align: center; line-height: 18px; z-index: 10;
         }
         #hotbar {
@@ -40,33 +45,54 @@
             position: absolute; top: 10px; left: 10px; color: #fff; background: rgba(0,0,0,0.7);
             padding: 12px; font-size: 12px; line-height: 1.5; border-radius: 5px; pointer-events: none;
         }
-        #chat {
-            position: absolute; bottom: 90px; left: 20px; width: 320px; height: 180px;
-            background: rgba(0,0,0,0.4); color: #fff; font-size: 13px; padding: 10px;
-            overflow-y: hidden; display: flex; flex-direction: column; justify-content: flex-end; pointer-events: none;
+        
+        /* Полноценный Чат */
+        #chat-container {
+            position: absolute; bottom: 90px; left: 20px; width: 400px;
+            display: flex; flex-direction: column; pointer-events: none; z-index: 20;
         }
-        .chat-msg { margin-top: 4px; text-shadow: 1px 1px #000; }
+        #chat-window {
+            height: 160px; background: rgba(0,0,0,0.4); overflow-y: hidden;
+            display: flex; flex-direction: column; justify-content: flex-end; padding: 8px; border-radius: 4px 4px 0 0;
+        }
+        .chat-msg { margin-top: 3px; font-size: 13px; color: #fff; text-shadow: 1px 1px #000; }
+        #chat-input {
+            width: 100%; padding: 8px; background: rgba(0,0,0,0.7); border: none; border-top: 1px solid #555;
+            color: white; font-family: monospace; display: none; pointer-events: auto; outline: none; box-sizing: border-box;
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
 
+<!-- Главное меню -->
 <div id="main-menu">
-    <div class="game-title">MINECRAFT 3D</div>
-    <button class="menu-btn" id="start-solo">ОДНОПОЛЬЗОВАТЕЛЬСКАЯ</button>
+    <div class="game-title">MINECRAFT БРАУЗЕР</div>
+    
+    <div class="profile-settings">
+        <label>НАСТРОЙКА ИГРОКА (СКИН И НИК):</label>
+        <input type="text" id="player-nickname" value="Player" maxlength="14" placeholder="Ваш ник">
+        <input type="color" id="player-skin-color" value="#00cccc">
+    </div>
+
+    <button class="menu-btn" id="start-solo">ОДНОПОЛЬЗОВАТЕЛЬСКАЯ ИГРА</button>
     <button class="menu-btn" id="start-multi">МУЛЬТИПЛЕЕР (СЕТЬ)</button>
 </div>
 
+<!-- Игровой интерфейс -->
 <div id="game-ui">
     <div id="crosshair">+</div>
     <div id="debug-info">
-        Чанки: <span id="chunk-count">0</span> | Игроков в сети: <span id="player-count">1</span><br>
+        Игрок: <span id="debug-nick">Player</span> | Режим: <span id="game-mode">Одиночный</span><br>
         Позиция: X: <span id="pos-x">0</span> Y: <span id="pos-y">0</span> Z: <span id="pos-z">0</span><br>
-        Режим: <span id="game-mode">Одиночный</span>
+        Чанки в памяти: <span id="chunk-count">0</span>
     </div>
     
-    <div id="chat">
-        <div class="chat-msg" style="color: #aaa;">[Система] Мир успешно сгенерирован!</div>
+    <div id="chat-container">
+        <div id="chat-window">
+            <div class="chat-msg" style="color: #ffff55;">[Система] Нажмите T для открытия чата. Наберите текст и нажмите Enter.</div>
+        </div>
+        <input type="text" id="chat-input" placeholder="Введите сообщение..." maxlength="80">
     </div>
 
     <div id="hotbar">
@@ -78,7 +104,7 @@
 </div>
 
 <script>
-// --- ШУМ И ГЕНЕРАЦИЯ ЛАНДШАФТА ---
+// --- МАТЕМАТИЧЕСКИЙ ШУМ ДЛЯ КАРТЫ 10000x10000 ---
 function hash2D(x, z) {
     let h = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453123;
     return h - Math.floor(h);
@@ -93,29 +119,27 @@ function noise2D(x, z) {
 }
 function getTerrainHeight(x, z) {
     if (Math.abs(x) > 5000 || Math.abs(z) > 5000) return 0;
-    let n = noise2D(x * 0.006, z * 0.006) * 16;
-    n += noise2D(x * 0.03, z * 0.03) * 4;
+    let n = noise2D(x * 0.007, z * 0.007) * 14;
     return Math.floor(n) + 8;
 }
 
-// --- НАСТРОЙКИ ---
+// --- СТРУКТУРНЫЕ НАСТРОЙКИ ---
 const CHUNK_SIZE = 16;
 const CHUNK_HEIGHT = 32;
-const RENDER_DISTANCE = 4;
-const WATER_LEVEL = 7;
+const RENDER_DISTANCE = 3; 
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x78a7ff);
-scene.fog = new THREE.FogExp2(0x78a7ff, 0.015);
+scene.fog = new THREE.FogExp2(0x78a7ff, 0.02);
 
-const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 500);
 const renderer = new THREE.WebGLRenderer({ antialias: false });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-scene.add(new THREE.AmbientLight(0xffffff, 0.65));
-const sun = new THREE.DirectionalLight(0xffffff, 0.45);
-sun.position.set(80, 150, 40);
+scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+const sun = new THREE.DirectionalLight(0xffffff, 0.4);
+sun.position.set(40, 80, 20);
 scene.add(sun);
 
 const blockMaterials = {
@@ -123,37 +147,33 @@ const blockMaterials = {
     dirt: new THREE.MeshLambertMaterial({ color: 0x866043 }),
     stone: new THREE.MeshLambertMaterial({ color: 0x73737d }),
     wood: new THREE.MeshLambertMaterial({ color: 0x946742 }),
-    leaves: new THREE.MeshLambertMaterial({ color: 0x3b823e }),
-    water: new THREE.MeshLambertMaterial({ color: 0x3b66cc, transparent: true, opacity: 0.6 })
+    leaves: new THREE.MeshLambertMaterial({ color: 0x3b823e })
 };
 const blockGeometry = new THREE.BoxGeometry(1, 1, 1);
 
 const worldBlocks = new Map(); 
 const chunks = new Map();      
 const mobs = [];
-const remotePlayers = [];
+
+let currentNickname = "Player";
+let currentSkinColor = "#00cccc";
 
 function blockKey(x, y, z) { return `${Math.round(x)},${Math.round(y)},${Math.round(z)}`; }
 function chunkKey(cx, cz) { return `${cx},${cz}`; }
 
 function worldDataSet(x, y, z, type) { worldBlocks.set(blockKey(x, y, z), type); }
-function worldDataGet(x, y, z) {
-    let b = worldBlocks.get(blockKey(x, y, z));
-    return (b && b !== 'water') ? b : null;
-}
+function worldDataGet(x, y, z) { return worldBlocks.get(blockKey(x, y, z)); }
 
-function addChatMessage(sender, text, color = "#fff") {
-    const chat = document.getElementById('chat');
-    const msg = document.createElement('div');
-    msg.className = 'chat-msg';
-    msg.style.color = color;
-    msg.innerText = `<${sender}> ${text}`;
-    chat.appendChild(msg);
-    if(chat.children.length > 7) chat.removeChild(chat.children[0]);
-}
-
-// --- ЧАНКИ ---
+// --- СИСТЕМА ЧАНКОВ С ЗАЩИТОЙ ОТ ПЕРЕГЕНЕРАЦИИ (СТОП ЛАГИ) ---
 function generateChunkData(cx, cz) {
+    let key = chunkKey(cx, cz);
+    // Проверяем, генерировались ли данные для этого чанка ранее
+    let alreadyGenerated = false;
+    for(let x=0; x<CHUNK_SIZE; x++) {
+        if(worldBlocks.has(blockKey(cx*CHUNK_SIZE+x, 5, cz*CHUNK_SIZE))) { alreadyGenerated = true; break; }
+    }
+    if(alreadyGenerated) return;
+
     for (let x = 0; x < CHUNK_SIZE; x++) {
         for (let z = 0; z < CHUNK_SIZE; z++) {
             let wx = cx * CHUNK_SIZE + x;
@@ -161,22 +181,26 @@ function generateChunkData(cx, cz) {
             let surface = getTerrainHeight(wx, wz);
 
             for (let y = 0; y < CHUNK_HEIGHT; y++) {
-                let key = blockKey(wx, y, wz);
-                if (worldBlocks.has(key)) continue;
-
                 let type = null;
-                let isCave = y < surface - 2 && (Math.sin(wx*0.25) + Math.cos(y*0.35) + Math.sin(wz*0.25) > 1.2);
-
-                if (!isCave) {
-                    if (y === surface) type = (y <= WATER_LEVEL + 1) ? 'dirt' : 'grass';
-                    else if (y < surface && y > surface - 4) type = 'dirt';
-                    else if (y <= surface - 4) type = 'stone';
-                    else if (y <= WATER_LEVEL) type = 'water';
-                }
+                if (y === surface) type = 'grass';
+                else if (y < surface && y > surface - 4) type = 'dirt';
+                else if (y <= surface - 4) type = 'stone';
+                
                 if (type) worldDataSet(wx, y, wz, type);
             }
-            if (surface > WATER_LEVEL + 1 && hash2D(wx, wz) < 0.012) {
-                for(let h=1; h<=4; h++) worldDataSet(wx, surface+h, wz, 'wood');
+
+            // Рендер листвы деревьев
+            if (hash2D(wx, wz) < 0.015 && surface > 0) {
+                for(let h=1; h<=4; h++) worldDataSet(wx, surface+h, wz, 'wood'); // Ствол
+                // Крона листвы
+                for(let lx=-1; lx<=1; lx++) {
+                    for(let ly=3; ly<=4; ly++) {
+                        for(let lz=-1; lz<=1; lz++) {
+                            if(lx===0 && lz===0 && ly===3) continue;
+                            worldDataSet(wx+lx, surface+ly, wz+lz, 'leaves');
+                        }
+                    }
+                }
             }
         }
     }
@@ -227,9 +251,17 @@ function buildChunkMesh(cx, cz) {
     chunks.set(key, group);
 }
 
-function updateChunksAroundPlayer() {
+let lastChunkX = NaN, lastChunkZ = NaN;
+function updateChunksAroundPlayer(force = false) {
     let pX = Math.floor(player.pos.x / CHUNK_SIZE);
     let pZ = Math.floor(player.pos.z / CHUNK_SIZE);
+
+    // Оптимизация: перестраиваем мир только если игрок реально вышел за границы текущего чанка
+    if (!force && pX === lastChunkX && pZ === lastChunkZ) return;
+    
+    lastChunkX = pX;
+    lastChunkZ = pZ;
+
     for (let x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
         for (let z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) {
             generateChunkData(pX + x, pZ + z);
@@ -250,34 +282,34 @@ function rebuildTargetChunk(x, z) {
     buildChunkMesh(cx, cz);
 }
 
-// --- МАНЕЖНЫЕ МОБЫ ---
+// --- ОРИГИНАЛЬНЫЕ КУБИЧЕСКИЕ ЖИВОТНЫЕ ---
 class MinecraftMob {
     constructor(x, z, type = 'pig') {
         this.group = new THREE.Group();
-        let color = type === 'pig' ? 0xff9999 : 0xeeeeee;
+        let color = type === 'pig' ? 0xff9999 : 0xdddddd;
         let mat = new THREE.MeshLambertMaterial({ color: color });
 
-        this.body = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 1.4), mat);
-        this.body.position.set(0, 0.6, 0);
+        this.body = new THREE.Mesh(new THREE.BoxGeometry(0.8, 0.8, 1.2), mat);
+        this.body.position.set(0, 0.5, 0);
         this.group.add(this.body);
 
-        this.head = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.6, 0.6), mat);
-        this.head.position.set(0, 1.1, -0.7);
+        this.head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.5), mat);
+        this.head.position.set(0, 0.9, -0.6);
         this.group.add(this.head);
 
-        let legGeo = new THREE.BoxGeometry(0.25, 0.6, 0.25);
+        let legGeo = new THREE.BoxGeometry(0.2, 0.5, 0.2);
         this.legs = [];
         for (let i = 0; i < 4; i++) {
             let leg = new THREE.Mesh(legGeo, mat);
             this.legs.push(leg);
             this.group.add(leg);
         }
-        this.legs[0].position.set(-0.3, 0.15, -0.4);
-        this.legs[1].position.set(0.3, 0.15, -0.4);
-        this.legs[2].position.set(-0.3, 0.15, 0.4);
-        this.legs[3].position.set(0.3, 0.15, 0.4);
+        this.legs[0].position.set(-0.25, 0.15, -0.35);
+        this.legs[1].position.set(0.25, 0.15, -0.35);
+        this.legs[2].position.set(-0.25, 0.15, 0.35);
+        this.legs[3].position.set(0.25, 0.15, 0.35);
 
-        this.pos = new THREE.Vector3(x, getTerrainHeight(x, z) + 2, z);
+        this.pos = new THREE.Vector3(x, getTerrainHeight(x, z) + 1, z);
         this.group.position.copy(this.pos);
         scene.add(this.group);
 
@@ -290,38 +322,36 @@ class MinecraftMob {
     update(dt) {
         this.changeDirTimer -= dt;
         if (this.changeDirTimer <= 0) {
-            this.changeDirTimer = 3 + Math.random() * 4;
+            this.changeDirTimer = 4 + Math.random() * 3;
             this.moveDir.set(Math.random() - 0.5, 0, Math.random() - 0.5).normalize();
             this.group.lookAt(this.pos.x + this.moveDir.x, this.pos.y, this.pos.z + this.moveDir.z);
         }
 
-        this.vel.x = this.moveDir.x * 1.5;
-        this.vel.z = this.moveDir.z * 1.5;
-        this.vel.y -= 16 * dt;
+        this.vel.x = this.moveDir.x * 1.2;
+        this.vel.z = this.moveDir.z * 1.2;
+        this.vel.y -= 14 * dt;
 
         let nextX = this.pos.x + this.vel.x * dt;
         let nextZ = this.pos.z + this.vel.z * dt;
-        let nextY = this.pos.y + this.vel.y * dt;
 
         if (worldDataGet(nextX, this.pos.y, this.pos.z) || worldDataGet(this.pos.x, this.pos.y, nextZ)) {
-            this.vel.y = 5.5; 
+            this.vel.y = 5.0; // Прыжок при столкновении с блоком
         }
 
-        if (!worldDataGet(nextX, this.pos.y, this.pos.z) && !worldDataGet(nextX, this.pos.y - 1, this.pos.z)) this.pos.x = nextX;
-        if (!worldDataGet(this.pos.x, this.pos.y, nextZ) && !worldDataGet(this.pos.x, this.pos.y - 1, nextZ)) this.pos.z = nextZ;
-
-        let groundY = getTerrainHeight(this.pos.x, this.pos.z) + 0.1;
-        if (nextY < groundY) {
+        this.pos.x = nextX;
+        this.pos.z = nextZ;
+        
+        let groundY = getTerrainHeight(this.pos.x, this.pos.z) + 1;
+        this.pos.y += this.vel.y * dt;
+        if (this.pos.y < groundY) {
             this.vel.y = 0;
             this.pos.y = groundY;
-        } else {
-            this.pos.y = nextY;
         }
 
         this.group.position.copy(this.pos);
 
-        this.animTime += dt * 7;
-        let angle = Math.sin(this.animTime) * 0.5;
+        this.animTime += dt * 6;
+        let angle = Math.sin(this.animTime) * 0.4;
         this.legs[0].rotation.x = angle;
         this.legs[3].rotation.x = angle;
         this.legs[1].rotation.x = -angle;
@@ -329,52 +359,7 @@ class MinecraftMob {
     }
 }
 
-// --- СЕТЕВЫЕ ИГРОКИ (БОТЫ ДЛЯ СЕТИ) ---
-class RemotePlayer {
-    constructor(name, skinColor) {
-        this.name = name;
-        this.group = new THREE.Group();
-        
-        let mat = new THREE.MeshLambertMaterial({ color: skinColor });
-        this.head = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), mat);
-        this.head.position.y = 1.6;
-        
-        this.body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.25), new THREE.MeshLambertMaterial({ color: 0x00cccc }));
-        this.body.position.y = 1.05;
-
-        this.group.add(this.head);
-        this.group.add(this.body);
-
-        this.pos = new THREE.Vector3((Math.random() - 0.5)*20, 15, (Math.random() - 0.5)*20);
-        this.group.position.copy(this.pos);
-        scene.add(this.group);
-
-        this.actionTimer = 0;
-        this.targetDir = new THREE.Vector3();
-    }
-    update(dt) {
-        this.actionTimer -= dt;
-        if(this.actionTimer <= 0) {
-            this.actionTimer = 3 + Math.random()*4;
-            this.targetDir.set(Math.random()-0.5, 0, Math.random()-0.5).normalize();
-            
-            if(Math.random() < 0.3) {
-                let phrases = ["Йоу!", "Кто строить со мной?", "Ищу алмазы", "Смотри какой холм"];
-                addChatMessage(this.name, phrases[Math.floor(Math.random()*phrases.length)], "#55ffff");
-            }
-        }
-
-        let speed = 4.0;
-        this.pos.x += this.targetDir.x * speed * dt;
-        this.pos.z += this.targetDir.z * speed * dt;
-        this.pos.y = getTerrainHeight(this.pos.x, this.pos.z) + 0.1;
-
-        this.group.position.copy(this.pos);
-        this.group.lookAt(this.pos.x + this.targetDir.x, this.pos.y, this.pos.z + this.targetDir.z);
-    }
-}
-
-// --- ЖЕЛЕЗНАЯ ФИЗИКА И ПРЫЖОК ГЛАВНОГО ИГРОКА ---
+// --- УПРАВЛЕНИЕ И КОРРЕНТНЫЙ ПРЫЖОК ---
 class PlayerPhysics {
     constructor() {
         this.pos = new THREE.Vector3(0, 20, 0);
@@ -383,48 +368,39 @@ class PlayerPhysics {
         this.isSprinting = false;
     }
     update(dt, moveDir, jumpPressed) {
-        // Сила тяжести
-        this.vel.y -= 24 * dt;
+        this.vel.y -= 22 * dt; 
 
-        let speed = this.isSprinting ? 9.5 : 5.2;
+        let speed = this.isSprinting ? 9.0 : 5.0;
         this.vel.x = moveDir.x * speed;
         this.vel.z = moveDir.z * speed;
 
-        // Фикс прыжка: Берем железную высоту блока прямо под ногами игрока
         let currentGroundY = getTerrainHeight(this.pos.x, this.pos.z) + this.height;
 
-        if (this.pos.y <= currentGroundY + 0.05) {
+        if (this.pos.y <= currentGroundY + 0.08) {
             this.vel.y = Math.max(0, this.vel.y);
-            this.pos.y = currentGroundY; // Корректируем привязку к полу
+            this.pos.y = currentGroundY;
 
-            // Если прожали Пробел — сразу выталкиваем вверх
-            if (jumpPressed) {
-                this.vel.y = 8.5; 
+            if (jumpPressed && !isChatOpen) {
+                this.vel.y = 8.0; // Четкий, рабочий прыжок
             }
         }
 
-        // Движение вперед/назад/вбок
-        let nextX = this.pos.x + this.vel.x * dt;
-        if (!worldDataGet(nextX, this.pos.y - 0.5, this.pos.z)) this.pos.x = nextX;
-
-        let nextZ = this.pos.z + this.vel.z * dt;
-        if (!worldDataGet(this.pos.x, this.pos.y - 0.5, nextZ)) this.pos.z = nextZ;
-
-        // Движение по высоте
+        this.pos.x += this.vel.x * dt;
+        this.pos.z += this.vel.z * dt;
         this.pos.y += this.vel.y * dt;
 
-        if (this.pos.y < -30) this.pos.set(0, 20, 0);
+        if (this.pos.y < -20) this.pos.set(0, 20, 0);
     }
 }
 
 const player = new PlayerPhysics();
 let isLocked = false;
+let isChatOpen = false;
 let selectedBlock = 'grass';
-let multiplayerMode = false;
 
-// --- СТРОИТЕЛЬСТВО ---
+// --- КЛИКИ МЫШИ (ЛОМАНИЕ / ПОСТРОЙКА) ---
 function interactWorld(isDestroy) {
-    if (!isLocked) return;
+    if (!isLocked || isChatOpen) return;
     const raycaster = new THREE.Raycaster();
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
     const intersects = raycaster.intersectObjects(Array.from(chunks.values()), true);
@@ -451,9 +427,16 @@ function interactWorld(isDestroy) {
     }
 }
 
-// --- КЛАВИАТУРА И МЫШЬ ---
+// --- СИСТЕМА КЛАВИАТУРЫ И ОТКРЫТИЯ ЧАТА ---
 const keys = { w: false, a: false, s: false, d: false, space: false };
 window.addEventListener('keydown', (e) => {
+    if (isChatOpen) {
+        if (e.key === 'Enter') {
+            sendChatMessage();
+        }
+        return; 
+    }
+
     if (e.code === 'Space') keys.space = true;
     if (e.key === 'w' || e.key === 'ц') keys.w = true;
     if (e.key === 's' || e.key === 'ы') keys.s = true;
@@ -461,6 +444,12 @@ window.addEventListener('keydown', (e) => {
     if (e.key === 'd' || e.key === 'в') keys.d = true;
     if (e.key === 'Shift') player.isSprinting = true;
     
+    // Кнопка Т - открыть чат
+    if (e.key === 't' || e.key === 'е') {
+        e.preventDefault();
+        openChat();
+    }
+
     if (['1','2','3','4'].includes(e.key)) {
         document.querySelectorAll('.slot').forEach(s => s.classList.remove('active'));
         let slots = document.querySelectorAll('.slot');
@@ -469,6 +458,7 @@ window.addEventListener('keydown', (e) => {
         selectedBlock = slots[idx].dataset.block;
     }
 });
+
 window.addEventListener('keyup', (e) => {
     if (e.code === 'Space') keys.space = false;
     if (e.key === 'w' || e.key === 'ц') keys.w = false;
@@ -483,38 +473,61 @@ window.addEventListener('mousedown', (e) => {
     if(e.button === 2) interactWorld(false);
 });
 
+// ЧАТ ФУНКЦИИ
+function openChat() {
+    isChatOpen = true;
+    const input = document.getElementById('chat-input');
+    input.style.display = 'block';
+    input.focus();
+    // Очищаем зажатые кнопки движения при входе в чат
+    Object.keys(keys).forEach(k => keys[k] = false);
+}
+
+function sendChatMessage() {
+    const input = document.getElementById('chat-input');
+    let text = input.value.trim();
+    if (text !== "") {
+        const windowChat = document.getElementById('chat-window');
+        const msg = document.createElement('div');
+        msg.className = 'chat-msg';
+        msg.innerText = `<${currentNickname}> ${text}`;
+        windowChat.appendChild(msg);
+        if(windowChat.children.length > 7) windowChat.removeChild(windowChat.children[0]);
+    }
+    input.value = "";
+    input.style.display = 'none';
+    isChatOpen = false;
+    document.body.requestPointerLock();
+}
+
 let pitch = 0, yaw = 0;
 document.addEventListener('mousemove', (e) => {
-    if (!isLocked) return;
+    if (!isLocked || isChatOpen) return;
     yaw -= e.movementX * 0.0025;
     pitch -= e.movementY * 0.0025;
     pitch = Math.max(-Math.PI/2 + 0.05, Math.min(Math.PI/2 - 0.05, pitch));
     camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
 });
 
-// --- СИСТЕМА ЗАПУСКА РЕЖИМОВ (ФИКС КНОПОК) ---
-function initGame(multi) {
-    multiplayerMode = multi;
-    document.getElementById('game-mode').innerText = multi ? "Мультиплеер" : "Одиночный";
+// --- СТАРТ РЕЖИМОВ ИЗ МЕНЮ ---
+function launchGame(isMultiplayer) {
+    currentNickname = document.getElementById('player-nickname').value.trim() || "Player";
+    currentSkinColor = document.getElementById('player-skin-color').value;
     
-    if(multi) {
-        if(remotePlayers.length === 0) {
-            remotePlayers.push(new RemotePlayer("Notch_Fan", 0xffdd99));
-            remotePlayers.push(new RemotePlayer("Alex_33", 0x88ff88));
-            remotePlayers.push(new RemotePlayer("Mr_Gamer", 0xff8888));
-        }
-        document.getElementById('player-count').innerText = "4";
-    } else {
-        document.getElementById('player-count').innerText = "1";
-    }
+    document.getElementById('debug-nick').innerText = currentNickname;
+    document.getElementById('game-mode').innerText = isMultiplayer ? "Мультиплеер" : "Одиночный";
+    
+    updateChunksAroundPlayer(true); 
     document.body.requestPointerLock();
 }
 
-// Жесткая привязка ивентов по ID элементов кнопок
-document.getElementById('start-solo').onclick = function() { initGame(false); };
-document.getElementById('start-multi').onclick = function() { initGame(true); };
+document.getElementById('start-solo').onclick = function() { launchGame(false); };
+document.getElementById('start-multi').onclick = function() { launchGame(true); };
 
 document.addEventListener('pointerlockchange', () => {
+    // Если открыт чат, не выбрасываем игрока в главное меню при разблокировке мыши
+    if (isChatOpen) return;
+    
     isLocked = document.pointerLockElement === document.body;
     if(isLocked) {
         document.getElementById('main-menu').style.display = 'none';
@@ -525,29 +538,33 @@ document.addEventListener('pointerlockchange', () => {
     }
 });
 
-// МОБЫ
-for(let i=0; i<15; i++) {
-    mobs.push(new MinecraftMob((Math.random()-0.5)*60, (Math.random()-0.5)*60, Math.random() > 0.5 ? 'pig' : 'sheep'));
+// СУЩЕСТВА
+for(let i=0; i<10; i++) {
+    mobs.push(new MinecraftMob((Math.random()-0.5)*40, (Math.random()-0.5)*40, Math.random() > 0.5 ? 'pig' : 'sheep'));
 }
 
-// --- ИГРОВОЙ ЦИКЛ ---
+// --- ГЛАВНЫЙ ИГРОВОЙ ЦИКЛ ---
 const clock = new THREE.Clock();
 function loop() {
     requestAnimationFrame(loop);
     const dt = Math.min(clock.getDelta(), 0.1);
 
     if (isLocked) {
-        const front = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
-        const side = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
-        front.y = 0; front.normalize();
-        side.y = 0; side.normalize();
-
         let moveDir = new THREE.Vector3();
-        if (keys.w) moveDir.add(front);
-        if (keys.s) moveDir.sub(front);
-        if (keys.d) moveDir.add(side);
-        if (keys.a) moveDir.sub(side);
-        moveDir.normalize();
+        
+        // Перемещение блокируется, если открыто окно ввода текста в чат
+        if (!isChatOpen) {
+            const front = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
+            const side = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
+            front.y = 0; front.normalize();
+            side.y = 0; side.normalize();
+
+            if (keys.w) moveDir.add(front);
+            if (keys.s) moveDir.sub(front);
+            if (keys.d) moveDir.add(side);
+            if (keys.a) moveDir.sub(side);
+            moveDir.normalize();
+        }
 
         player.update(dt, moveDir, keys.space);
         camera.position.copy(player.pos);
@@ -561,10 +578,6 @@ function loop() {
 
         updateChunksAroundPlayer();
         mobs.forEach(mob => mob.update(dt));
-
-        if(multiplayerMode) {
-            remotePlayers.forEach(p => p.update(dt));
-        }
 
         document.getElementById('pos-x').innerText = Math.round(player.pos.x);
         document.getElementById('pos-y').innerText = Math.round(player.pos.y);
