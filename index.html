@@ -3,72 +3,263 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Minecraft Alpha - Herobrin's Myth (Network Fix)</title>
+    <title>Minecraft Alpha - Herobrin & Old NPC Premium Edition</title>
     <style>
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background-color: #050505; font-family: 'Courier New', Courier, monospace; user-select: none; touch-action: none; }
+        body, html { 
+            margin: 0; 
+            padding: 0; 
+            width: 100%; 
+            height: 100%; 
+            overflow: hidden; 
+            background-color: #050505; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, monospace; 
+            user-select: none; 
+            touch-action: none; 
+        }
         
         /* Выбор платформы */
         #platform-menu {
-            position: absolute; width: 100%; height: 100%; z-index: 110;
-            background: #111; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white;
+            position: absolute; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 110;
+            background: #111; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            color: white;
         }
         
         /* Главное меню */
         #main-menu {
-            position: absolute; width: 100%; height: 100%; z-index: 100;
-            background: #222; display: none; flex-direction: column; align-items: center; justify-content: center;
+            position: absolute; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 100;
+            background: #222; 
+            display: none; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center;
         }
-        .game-title { font-size: 42px; color: #a0a0a0; text-shadow: 3px 3px #222; font-weight: bold; margin-bottom: 30px; text-align: center; }
-        .menu-subtitle { color: #8b0000; font-size: 18px; margin-bottom: 20px; font-weight: bold; animation: blink 1.5s infinite; }
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .game-title { 
+            font-size: 42px; 
+            color: #a0a0a0; 
+            text-shadow: 3px 3px #222; 
+            font-weight: bold; 
+            margin-bottom: 30px; 
+            text-align: center; 
+        }
+        .menu-subtitle { 
+            color: #8b0000; 
+            font-size: 22px; 
+            margin-bottom: 20px; 
+            font-weight: bold; 
+            animation: blink 1.5s infinite; 
+        }
+        @keyframes blink { 
+            0%, 100% { opacity: 1; } 
+            50% { opacity: 0.3; } 
+        }
 
-        .profile-settings { background: rgba(0,0,0,0.6); padding: 15px; border-radius: 4px; margin-bottom: 20px; border: 2px solid #444; text-align: center; color: white; }
-        .profile-settings input { margin: 5px; padding: 8px; background: #222; border: 2px solid #555; color: white; font-family: monospace; text-align: center; }
+        .profile-settings { 
+            background: rgba(0,0,0,0.6); 
+            padding: 20px; 
+            border-radius: 4px; 
+            margin-bottom: 20px; 
+            border: 2px solid #444; 
+            text-align: center; 
+            color: white; 
+        }
+        .profile-settings input { 
+            margin: 5px; 
+            padding: 12px; 
+            background: #222; 
+            border: 2px solid #555; 
+            color: white; 
+            font-size: 18px; 
+            font-family: monospace; 
+            text-align: center; 
+        }
 
-        /* Окно коннекта по коду */
+        /* Модалка ввода кода комнаты */
         #server-modal {
-            display: none; position: absolute; background: rgba(0,0,0,0.9); border: 3px solid #8b0000;
-            padding: 20px; text-align: center; color: white; z-index: 120; border-radius: 6px;
+            display: none; 
+            position: absolute; 
+            background: rgba(0,0,0,0.95); 
+            border: 3px solid #8b0000;
+            padding: 30px; 
+            text-align: center; 
+            color: white; 
+            z-index: 120; 
+            border-radius: 6px;
+            top: 50%; 
+            left: 50%; 
+            transform: translate(-50%, -50%);
         }
 
         .menu-btn {
-            width: 280px; padding: 15px; margin: 10px; background: #444; border: 3px solid #000;
-            color: #fff; font-size: 16px; cursor: pointer; text-align: center; box-shadow: inset -4px -4px #222, inset 4px 4px #666;
+            width: 320px; 
+            padding: 18px; 
+            margin: 12px; 
+            background: #444; 
+            border: 3px solid #000;
+            color: #fff; 
+            font-size: 18px; 
+            font-weight: bold; 
+            cursor: pointer; 
+            text-align: center; 
+            box-shadow: inset -4px -4px #222, inset 4px 4px #666;
         }
-        .menu-btn:hover { background: #8b0000; }
+        .menu-btn:hover { 
+            background: #8b0000; 
+        }
 
         /* Игровой интерфейс */
-        #game-ui { display: none; }
+        #game-ui { 
+            display: none; 
+        }
         #crosshair {
-            position: absolute; top: 50%; left: 50%; width: 20px; height: 20px;
-            transform: translate(-50%, -50%); color: rgba(255,255,255,0.6); font-size: 24px;
-            pointer-events: none; text-align: center; line-height: 18px; z-index: 10;
+            position: absolute; 
+            top: 50%; 
+            left: 50%; 
+            width: 20px; 
+            height: 20px;
+            transform: translate(-50%, -50%); 
+            color: rgba(255,255,255,0.6); 
+            font-size: 32px;
+            pointer-events: none; 
+            text-align: center; 
+            line-height: 18px; 
+            z-index: 10;
         }
         
+        /* Увеличенный Хотбар */
         #hotbar {
-            position: absolute; bottom: 15px; left: 50%; transform: translateX(-50%);
-            display: flex; background: rgba(0,0,0,0.6); padding: 4px; border: 3px solid #333; border-radius: 4px; pointer-events: auto;
+            position: absolute; 
+            bottom: 20px; 
+            left: 50%; 
+            transform: translateX(-50%);
+            display: flex; 
+            background: rgba(0,0,0,0.6); 
+            padding: 6px; 
+            border: 3px solid #333; 
+            border-radius: 6px; 
+            pointer-events: auto; 
+            z-index: 60;
         }
         .slot {
-            width: 42px; height: 42px; margin: 0 3px; border: 2px solid #555;
-            display: flex; align-items: center; justify-content: center; color: white; font-size: 10px; font-weight: bold; text-align: center; cursor: pointer;
+            width: 54px; 
+            height: 54px; 
+            margin: 0 4px; 
+            border: 3px solid #555;
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-size: 12px; 
+            font-weight: bold; 
+            text-align: center; 
+            cursor: pointer;
         }
-        .slot.active { border-color: #fff; background: rgba(255,255,255,0.3); }
+        .slot.active { 
+            border-color: #fff; 
+            background: rgba(255,255,255,0.4); 
+        }
         
+        /* Крупный Дебаг */
         #debug-info {
-            position: absolute; top: 10px; left: 10px; color: #aaa; background: rgba(0,0,0,0.7);
-            padding: 10px; font-size: 11px; line-height: 1.4; border-radius: 4px; pointer-events: none;
+            position: absolute; 
+            top: 15px; 
+            left: 15px; 
+            color: #fff; 
+            background: rgba(0,0,0,0.75);
+            padding: 15px; 
+            font-size: 15px; 
+            line-height: 1.5; 
+            border-radius: 6px; 
+            pointer-events: none;
         }
         
-        /* Мобильное управление */
-        #mobile-controls { display: none; position: absolute; width: 100%; height: 100%; top: 0; left: 0; pointer-events: none; z-index: 50; }
-        #joystick-zone { position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border-radius: 50%; pointer-events: auto; border: 2px solid rgba(255,255,255,0.3); }
-        #joystick-stick { position: absolute; top: 35px; left: 35px; width: 50px; height: 50px; background: rgba(255,255,255,0.4); border-radius: 50%; }
-        #jump-btn { position: absolute; bottom: 50px; right: 40px; width: 70px; height: 70px; background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.4); border-radius: 50%; pointer-events: auto; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; }
-        #action-btn-zone { position: absolute; bottom: 140px; right: 40px; display: flex; flex-direction: column; pointer-events: auto; }
-        .action-btn { width: 65px; padding: 10px; margin: 5px 0; background: rgba(0,0,0,0.6); border: 2px solid #555; color: white; font-size: 12px; text-align: center; border-radius: 5px; }
+        /* Крупное мобильное управление */
+        #mobile-controls { 
+            display: none; 
+            position: absolute; 
+            width: 100%; 
+            height: 100%; 
+            top: 0; 
+            left: 0; 
+            pointer-events: none; 
+            z-index: 50; 
+        }
+        #joystick-zone { 
+            position: absolute; 
+            bottom: 40px; 
+            left: 40px; 
+            width: 140px; 
+            height: 140px; 
+            background: rgba(255,255,255,0.15); 
+            border-radius: 50%; 
+            pointer-events: auto; 
+            border: 3px solid rgba(255,255,255,0.3); 
+        }
+        #joystick-stick { 
+            position: absolute; 
+            top: 45px; 
+            left: 45px; 
+            width: 50px; 
+            height: 50px; 
+            background: rgba(255,255,255,0.5); 
+            border-radius: 50%; 
+        }
+        #jump-btn { 
+            position: absolute; 
+            bottom: 40px; 
+            right: 40px; 
+            width: 90px; 
+            height: 90px; 
+            background: rgba(255,255,255,0.25); 
+            border: 3px solid rgba(255,255,255,0.4); 
+            border-radius: 50%; 
+            pointer-events: auto; 
+            color: white; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: bold; 
+            font-size: 16px; 
+        }
+        #action-btn-zone { 
+            position: absolute; 
+            bottom: 150px; 
+            right: 40px; 
+            display: flex; 
+            flex-direction: column; 
+            pointer-events: auto; 
+        }
+        .action-btn { 
+            width: 90px; 
+            padding: 16px 0; 
+            margin: 8px 0; 
+            background: rgba(0,0,0,0.8); 
+            border: 2px solid #888; 
+            color: white; 
+            font-size: 14px; 
+            text-align: center; 
+            border-radius: 6px; 
+            font-weight: bold; 
+        }
 
-        #screamer-overlay { position: absolute; width:100%; height:100%; background: rgba(139,0,0,0.4); display:none; z-index:99; pointer-events:none; }
+        #screamer-overlay { 
+            position: absolute; 
+            width:100%; 
+            height:100%; 
+            background: rgba(139,0,0,0.5); 
+            display:none; 
+            z-index:99; 
+            pointer-events:none; 
+        }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
@@ -87,7 +278,7 @@
     <div class="menu-subtitle">ОН СЛЕДИТ ЗА ТОБОЙ</div>
     
     <div class="profile-settings">
-        <label style="font-size:12px; display:block; margin-bottom:5px;">НИКНЕЙМ СТИВА:</label>
+        <label style="font-size:14px; display:block; margin-bottom:5px;">НИКНЕЙМ СТИВА:</label>
         <input type="text" id="player-nickname" value="Steve" maxlength="12">
     </div>
 
@@ -95,10 +286,10 @@
     <button class="menu-btn" id="start-multi">МУЛЬТИПЛЕЕР (ПО КОДУ)</button>
 
     <div id="server-modal">
-        <h3 style="margin-top:0; color:#ff3333;">ПОДКЛЮЧЕНИЕ К СЕТИ</h3>
-        <p style="font-size:12px;">Введите 3-значный код комнаты:</p>
-        <input type="text" id="server-code-input" value="777" maxlength="3" style="font-size:24px; width:100px; padding:5px; background:#111; color:#fff; border:2px solid #8b0000; font-family:monospace; text-align:center; letter-spacing:3px;"><br><br>
-        <button class="menu-btn" id="connect-confirm-btn" style="width:180px; padding:10px; margin:0;">ПОДКЛЮЧИТЬСЯ</button>
+        <h3 style="margin-top:0; color:#ff3333; font-size: 22px;">ПОДКЛЮЧЕНИЕ К СЕТИ</h3>
+        <p style="font-size:16px; margin-bottom: 15px;">Введите 3-значный код комнаты:</p>
+        <input type="text" id="server-code-input" value="777" maxlength="3" style="font-size:28px; width:120px; padding:8px; background:#111; color:#fff; border:3px solid #8b0000; font-family:monospace; text-align:center; letter-spacing: 2px;"><br><br>
+        <button class="menu-btn" id="connect-confirm-btn" style="width:200px; padding:12px; margin:0;">ПОДКЛЮЧИТЬСЯ</button>
     </div>
 </div>
 
@@ -108,12 +299,12 @@
         Режим: <span id="game-mode">Выживание</span><br>
         Комната: <span id="debug-server-code">Локально</span><br>
         X: <span id="pos-x">0</span> Y: <span id="pos-y">0</span> Z: <span id="pos-z">0</span><br>
-        <span id="warning-text" style="color: #ff3333; font-weight: bold; display:none;">ВТОРЖЕНИЕ</span>
+        <span id="warning-text" style="color: #ff3333; font-weight: bold; display:none; font-size:16px; margin-top:5px;">ВТОРЖЕНИЕ</span>
     </div>
 
     <div id="mobile-controls">
         <div id="joystick-zone"><div id="joystick-stick"></div></div>
-        <div id="jump-btn">ВВЕРХ</div>
+        <div id="jump-btn">ПРЫЖОК</div>
         <div id="action-btn-zone">
             <div class="action-btn" id="m-destroy">ЛОМАТЬ</div>
             <div class="action-btn" id="m-build">СТАВИТЬ</div>
@@ -133,81 +324,86 @@
 </div>
 
 <script>
-// --- ХОРРОР СИНТЕЗАТОР ЗВУКОВ (Web Audio API) ---
+// --- ХОРРОР АУДИОДВИЖОК ---
 let audioCtx = null;
-function initAudio() {
-    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+function initAudio() { 
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); 
 }
 function playScreamSound() {
     if(!audioCtx) return;
-    let osc = audioCtx.createOscillator();
+    let osc = audioCtx.createOscillator(); 
     let gain = audioCtx.createGain();
-    osc.type = 'sawtooth';
+    osc.type = 'sawtooth'; 
     osc.frequency.setValueAtTime(120, audioCtx.currentTime);
     osc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.8);
-    gain.gain.setValueAtTime(0.4, audioCtx.currentTime);
+    gain.gain.setValueAtTime(0.4, audioCtx.currentTime); 
     gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.8);
-    osc.connect(gain); gain.connect(audioCtx.destination);
-    osc.start(); osc.stop(audioCtx.currentTime + 0.8);
+    osc.connect(gain); 
+    gain.connect(audioCtx.destination); 
+    osc.start(); 
+    osc.stop(audioCtx.currentTime + 0.8);
 }
 function playAmbientGloom() {
     if(!audioCtx) return;
     setInterval(() => {
-        if(!isLocked && !isMobile) return;
-        let osc = audioCtx.createOscillator();
+        if(!isLocked) return;
+        let osc = audioCtx.createOscillator(); 
         let gain = audioCtx.createGain();
-        osc.type = 'sine';
+        osc.type = 'sine'; 
         osc.frequency.setValueAtTime(55 + Math.random()*15, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.08, audioCtx.currentTime); 
         gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 3.0);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + 3.0);
-    }, 4000);
+        osc.connect(gain); 
+        gain.connect(audioCtx.destination); 
+        osc.start(); 
+        osc.stop(audioCtx.currentTime + 3.0);
+    }, 4500);
 }
 
-// --- МАТЕМАТИКА И КАРТА ---
-function hash2D(x, z) {
+// --- МАТЕМАТИКА ГЕНЕРАЦИИ КАРТЫ ---
+function hash2D(x, z) { 
     let h = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453123;
-    return h - Math.floor(h);
+    return h - Math.floor(h); 
 }
 function noise2D(x, z) {
     let X = Math.floor(x), Z = Math.floor(z);
     let fx = x - X, fz = z - Z;
-    let v1 = hash2D(X, Z), v2 = hash2D(X + 1, Z);
+    let v1 = Math.abs(hash2D(X, Z)); 
+    let v2 = Math.abs(hash2D(X + 1, Z));
     return THREE.MathUtils.lerp(v1, v2, fx * fx * (3.0 - 2.0 * fx));
 }
-function getTerrainHeight(x, z) {
-    return Math.floor(noise2D(x * 0.012, z * 0.012) * 12) + 6;
+function getTerrainHeight(x, z) { 
+    return Math.floor(noise2D(x * 0.015, z * 0.015) * 10) + 5; 
 }
 
-// --- НАСТРОЙКИ ДВИЖКА ---
+// --- ИГРОВОЙ ДВИЖОК THREE.JS ---
 const CHUNK_SIZE = 16;
 const CHUNK_HEIGHT = 24;
 const RENDER_DISTANCE = 3;
 
-const scene = new THREE.Scene();
+const scene = new THREE.Scene(); 
 const skyColor = new THREE.Color(0x5c78aa);
-scene.background = skyColor.clone();
+scene.background = skyColor.clone(); 
 scene.fog = new THREE.FogExp2(0x5c78aa, 0.03);
 
 const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 300);
 const renderer = new THREE.WebGLRenderer({ antialias: false });
-renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setSize(window.innerWidth, window.innerHeight); 
 document.body.appendChild(renderer.domElement);
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-const sun = new THREE.DirectionalLight(0xffffff, 0.3);
-sun.position.set(20, 60, 10);
+const sun = new THREE.DirectionalLight(0xffffff, 0.3); 
+sun.position.set(20, 60, 10); 
 scene.add(sun);
 
 const blockMaterials = {
-    grass: new THREE.MeshLambertMaterial({ color: 0x5e9e3b }),
+    grass: new THREE.MeshLambertMaterial({ color: 0x5e9e3b }), 
     dirt: new THREE.MeshLambertMaterial({ color: 0x866043 }),
-    stone: new THREE.MeshLambertMaterial({ color: 0x73737d }),
+    stone: new THREE.MeshLambertMaterial({ color: 0x73737d }), 
     wood: new THREE.MeshLambertMaterial({ color: 0xb58a55 }),
-    leaves: new THREE.MeshLambertMaterial({ color: 0x2d6130 }),
+    leaves: new THREE.MeshLambertMaterial({ color: 0x2d6130 }), 
     diamond: new THREE.MeshLambertMaterial({ color: 0x4dedf0 }),
-    brick: new THREE.MeshLambertMaterial({ color: 0x9c4a3a }),
+    brick: new THREE.MeshLambertMaterial({ color: 0x9c4a3a }), 
     glass: new THREE.MeshLambertMaterial({ color: 0xc8f0ff, transparent: true, opacity: 0.5 }),
     sponge: new THREE.MeshLambertMaterial({ color: 0xc2ba46 })
 };
@@ -215,11 +411,13 @@ const blockGeometry = new THREE.BoxGeometry(1, 1, 1);
 const worldBlocks = new Map(); 
 const chunks = new Map();
 
-function blockKey(x, y, z) { return `${Math.round(x)},${Math.round(y)},${Math.round(z)}`; }
+function blockKey(x, y, z) { 
+    return `${Math.round(x)},${Math.round(y)},${Math.round(z)}`; 
+}
 
-// --- СИСТЕМА ГЕНЕРАЦИИ ЧАНКОВ (МНОГО БЛОКОВ И ДЕРЕВЬЕВ) ---
+// Полноценная генерация ландшафта (коллизия деревьев сохранена)
 function generateChunk(cx, cz) {
-    let cKey = `${cx},${cz}`;
+    let cKey = `${cx},${cz}`; 
     if (chunks.has(cKey)) return;
 
     for (let x = 0; x < CHUNK_SIZE; x++) {
@@ -227,24 +425,26 @@ function generateChunk(cx, cz) {
             let wx = cx * CHUNK_SIZE + x;
             let wz = cz * CHUNK_SIZE + z;
             let surface = getTerrainHeight(wx, wz);
-
+            
             for (let y = 0; y < CHUNK_HEIGHT; y++) {
                 let type = null;
                 if (y === surface) type = 'grass';
                 else if (y < surface && y > surface - 3) type = 'dirt';
-                else if (y <= surface - 3) type = (hash2D(wx, y) < 0.03) ? 'diamond' : 'stone';
-
+                else if (y <= surface - 3) type = (Math.abs(hash2D(wx, y)) < 0.02) ? 'diamond' : 'stone';
+                
                 if (type) worldBlocks.set(blockKey(wx, y, wz), type);
             }
-
-            // Деревья со стволами (Твердые коллизии)
-            if (hash2D(wx, wz) < 0.02 && surface > 4) {
-                for(let h=1; h<=4; h++) worldBlocks.set(blockKey(wx, surface+h, wz), 'wood');
-                for(let lx=-1; lx<=1; lx++) {
-                    for(let ly=4; ly<=5; ly++) {
-                        for(let lz=-1; lz<=1; lz++) {
-                            if(lx===0 && lz===0 && ly===4) continue;
-                            worldBlocks.set(blockKey(wx+lx, surface+ly, wz+lz), 'leaves');
+            
+            // Стволы деревьев (Жесткая физика)
+            if (Math.abs(hash2D(wx, wz)) < 0.02 && surface > 4) {
+                for(let h = 1; h <= 4; h++) {
+                    worldBlocks.set(blockKey(wx, surface + h, wz), 'wood');
+                }
+                for(let lx = -1; lx <= 1; lx++) {
+                    for(let ly = 4; ly <= 5; ly++) {
+                        for(let lz = -1; lz <= 1; lz++) {
+                            if(lx === 0 && lz === 0 && ly === 4) continue;
+                            worldBlocks.set(blockKey(wx + lx, surface + ly, wz + lz), 'leaves');
                         }
                     }
                 }
@@ -252,24 +452,23 @@ function generateChunk(cx, cz) {
         }
     }
 
-    // Отрисовка
-    const group = new THREE.Group();
+    const group = new THREE.Group(); 
     const meshTypes = {};
     
     for (let x = 0; x < CHUNK_SIZE; x++) {
         for (let z = 0; z < CHUNK_SIZE; z++) {
             for (let y = 0; y < CHUNK_HEIGHT; y++) {
-                let type = worldBlocks.get(blockKey(cx*CHUNK_SIZE+x, y, cz*CHUNK_SIZE+z));
+                let type = worldBlocks.get(blockKey(cx * CHUNK_SIZE + x, y, cz * CHUNK_SIZE + z));
                 if (type) meshTypes[type] = (meshTypes[type] || 0) + 1;
             }
         }
     }
-
+    
     Object.keys(meshTypes).forEach(t => {
         meshTypes[t] = { mesh: new THREE.InstancedMesh(blockGeometry, blockMaterials[t], meshTypes[t]), idx: 0 };
         group.add(meshTypes[t].mesh);
     });
-
+    
     const dummy = new THREE.Object3D();
     for (let x = 0; x < CHUNK_SIZE; x++) {
         for (let z = 0; z < CHUNK_SIZE; z++) {
@@ -277,323 +476,395 @@ function generateChunk(cx, cz) {
                 let wx = cx * CHUNK_SIZE + x;
                 let wz = cz * CHUNK_SIZE + z;
                 let type = worldBlocks.get(blockKey(wx, y, wz));
-                if (!type) continue;
-                dummy.position.set(wx, y, wz);
+                if (!type) continue; 
+                dummy.position.set(wx, y, wz); 
                 dummy.updateMatrix();
                 meshTypes[type].mesh.setMatrixAt(meshTypes[type].idx++, dummy.matrix);
             }
         }
     }
-    scene.add(group);
+    scene.add(group); 
     chunks.set(cKey, group);
 }
 
 function updateWorld() {
     let pX = Math.floor(player.pos.x / CHUNK_SIZE);
     let pZ = Math.floor(player.pos.z / CHUNK_SIZE);
-    for(let x=-RENDER_DISTANCE; x<=RENDER_DISTANCE; x++) {
-        for(let z=-RENDER_DISTANCE; z<=RENDER_DISTANCE; z++) {
-            generateChunk(pX+x, pZ+z);
+    for(let x = -RENDER_DISTANCE; x <= RENDER_DISTANCE; x++) {
+        for(let z = -RENDER_DISTANCE; z <= RENDER_DISTANCE; z++) { 
+            generateChunk(pX + x, pZ + z); 
         }
     }
 }
 
-// --- ФИЗИКА И КОЛЛИЗИИ (ИСПРАВЛЕНЫ ДЕРЕВЬЯ) ---
+// --- ФИЗИКА ИГРОКА ---
 class PlayerPhysics {
-    constructor() {
-        this.pos = new THREE.Vector3(0, 15, 0);
-        this.vel = new THREE.Vector3();
-        this.height = 1.7;
+    constructor() { 
+        this.pos = new THREE.Vector3(0, 15, 0); 
+        this.vel = new THREE.Vector3(); 
+        this.height = 1.7; 
     }
     update(dt, moveDir, jumpPressed) {
-        this.vel.y -= 22 * dt;
-        this.vel.x = moveDir.x * 5.0;
+        this.vel.y -= 22 * dt; 
+        this.vel.x = moveDir.x * 5.0; 
         this.vel.z = moveDir.z * 5.0;
-
+        
         let nextX = this.pos.x + this.vel.x * dt;
         let nextZ = this.pos.z + this.vel.z * dt;
 
-        let blockAtX = worldBlocks.get(blockKey(nextX, Math.floor(this.pos.y - 0.5), this.pos.z)) || worldBlocks.get(blockKey(nextX, Math.floor(this.pos.y - 1.5), this.pos.z));
-        let blockAtZ = worldBlocks.get(blockKey(this.pos.x, Math.floor(this.pos.y - 0.5), nextZ)) || worldBlocks.get(blockKey(this.pos.x, Math.floor(this.pos.y - 1.5), nextZ));
-
-        if (!blockAtX) this.pos.x = nextX;
+        let blockAtX = worldBlocks.get(blockKey(nextX, Math.floor(this.pos.y - 0.5), this.pos.z)) || worldBlocks.get(blockKey(nextX, Math.floor(this.pos.y - 1.4), this.pos.z));
+        let blockAtZ = worldBlocks.get(blockKey(this.pos.x, Math.floor(this.pos.y - 0.5), nextZ)) || worldBlocks.get(blockKey(this.pos.x, Math.floor(this.pos.y - 1.4), nextZ));
+        
+        if (!blockAtX) this.pos.x = nextX; 
         if (!blockAtZ) this.pos.z = nextZ;
 
         let groundY = getTerrainHeight(this.pos.x, this.pos.z) + this.height;
-        let blockUnderNode = worldBlocks.get(blockKey(this.pos.x, Math.floor(this.pos.y - this.height - 0.1), this.pos.z));
-        if (blockUnderNode && blockUnderNode !== 'leaves') {
+        let blockUnder = worldBlocks.get(blockKey(this.pos.x, Math.floor(this.pos.y - this.height - 0.1), this.pos.z));
+        if (blockUnder && blockUnder !== 'leaves') {
             let bY = Math.floor(this.pos.y - this.height - 0.1) + 1 + this.height;
             if(bY > groundY) groundY = bY;
         }
-
-        if (this.pos.y <= groundY + 0.1) {
-            this.vel.y = Math.max(0, this.vel.y);
-            this.pos.y = groundY;
+        
+        if (this.pos.y <= groundY + 0.1) { 
+            this.vel.y = Math.max(0, this.vel.y); 
+            this.pos.y = groundY; 
             if (jumpPressed) this.vel.y = 7.5; 
         }
-
-        this.pos.y += this.vel.y * dt;
+        this.pos.y += this.vel.y * dt; 
         if(this.pos.y < -10) this.pos.set(0, 15, 0);
     }
 }
 const player = new PlayerPhysics();
 
-// --- АНОМАЛИИ: ХЕРОБРИН И КРАСНАЯ КУРИЦА ---
-let herobrinMesh = null;
-let redChickenMesh = null;
-let anomalyTimer = 0;
-let skyDark = false;
-let skyTimer = 40; 
-
-function spawnHerobrin() {
-    if(herobrinMesh) scene.remove(herobrinMesh);
-    
-    let geo = new THREE.BoxGeometry(0.5, 1.7, 0.4);
-    let mat = new THREE.MeshLambertMaterial({ color: 0x1133aa }); 
-    herobrinMesh = new THREE.Group();
-    let body = new THREE.Mesh(geo, mat);
-    
-    let headGeo = new THREE.BoxGeometry(0.4, 0.4, 0.4);
-    let headMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-    let head = new THREE.Mesh(headGeo, headMat);
-    head.position.y = 0.95;
-    
-    herobrinMesh.add(body, head);
-    
-    let angle = Math.random() * Math.PI * 2;
-    herobrinMesh.position.set(player.pos.x + Math.cos(angle)*18, getTerrainHeight(player.pos.x, player.pos.z)+1.5, player.pos.z + Math.sin(angle)*18);
-    scene.add(herobrinMesh);
-    playScreamSound();
-    
-    document.getElementById('warning-text').style.display = 'block';
-    spawnRedChicken();
+// --- СИСТЕМА СТАРЫХ КЛАССИЧЕСКИХ NPC И АНОМАЛИЙ ---
+class AlphaNPC {
+    constructor(x, z, isHerobrin = false) {
+        this.isHero = isHerobrin; 
+        this.group = new THREE.Group();
+        
+        let bodyMat = new THREE.MeshLambertMaterial({ color: isHerobrin ? 0x1133aa : 0xcc3333 });
+        let headMat = isHerobrin ? new THREE.MeshBasicMaterial({ color: 0xffffff }) : new THREE.MeshLambertMaterial({ color: 0xffcc99 });
+        
+        let body = new THREE.Mesh(new THREE.BoxGeometry(0.5, 1.0, 0.3), bodyMat); 
+        body.position.y = 0.5;
+        this.head = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.4), headMat); 
+        this.head.position.y = 1.2;
+        this.group.add(body, this.head);
+        
+        this.pos = new THREE.Vector3(x, getTerrainHeight(x, z) + 1.7, z);
+        this.group.position.copy(this.pos); 
+        scene.add(this.group);
+        
+        this.vel = new THREE.Vector3(); 
+        this.dir = new THREE.Vector3(); 
+        this.timer = 0;
+    }
+    update(dt) {
+        if (this.isHero) {
+            this.group.lookAt(player.pos.x, this.group.position.y, player.pos.z); 
+            return;
+        }
+        
+        // Классическое хаотичное блуждание и прыжки старых ботов
+        this.timer -= dt;
+        if(this.timer <= 0) {
+            this.timer = 2 + Math.random() * 4;
+            this.dir.set(Math.random() - 0.5, 0, Math.random() - 0.5).normalize();
+            if(Math.random() < 0.4) this.vel.y = 6.0; 
+        }
+        
+        this.vel.y -= 20 * dt; 
+        this.vel.x = this.dir.x * 2.5; 
+        this.vel.z = this.dir.z * 2.5;
+        
+        this.pos.x += this.vel.x * dt; 
+        this.pos.z += this.vel.z * dt;
+        
+        let gy = getTerrainHeight(this.pos.x, this.pos.z) + 1.7;
+        this.pos.y += this.vel.y * dt; 
+        if(this.pos.y < gy) { 
+            this.pos.y = gy; 
+            this.vel.y = 0; 
+        }
+        
+        this.group.position.copy(this.pos); 
+        this.group.lookAt(this.pos.x + this.dir.x, this.pos.y, this.pos.z + this.dir.z);
+    }
 }
 
-function spawnRedChicken() {
-    if(redChickenMesh) scene.remove(redChickenMesh);
-    redChickenMesh = new THREE.Group();
-    let mat = new THREE.MeshLambertMaterial({ color: 0xd90404 }); 
-    let body = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.5), mat);
-    let head = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.25), mat);
-    head.position.set(0, 0.3, -0.2);
-    redChickenMesh.add(body, head);
-    redChickenMesh.position.set(player.pos.x + (Math.random()-0.5)*8, getTerrainHeight(player.pos.x, player.pos.z)+0.5, player.pos.z + (Math.random()-0.5)*8);
-    scene.add(redChickenMesh);
+const npcs = []; 
+let herobrin = null; 
+let redChicken = null;
+let anomalyTimer = 0; 
+let skyDark = false; 
+let skyTimer = 40;
+
+function spawnHerobrin() {
+    if(herobrin) scene.remove(herobrin.group);
+    let ang = Math.random() * Math.PI * 2;
+    herobrin = new AlphaNPC(player.pos.x + Math.cos(ang)*20, player.pos.z + Math.sin(ang)*20, true);
+    playScreamSound(); 
+    document.getElementById('warning-text').style.display = 'block';
+    
+    if(redChicken) scene.remove(redChicken);
+    redChicken = new THREE.Group(); 
+    let mat = new THREE.MeshLambertMaterial({ color: 0xd90404 });
+    let b = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.4, 0.5), mat); 
+    let h = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.25, 0.25), mat); 
+    h.position.set(0, 0.3, -0.2);
+    redChicken.add(b, h); 
+    redChicken.position.set(player.pos.x + (Math.random()-0.5)*6, getTerrainHeight(player.pos.x, player.pos.z)+0.5, player.pos.z + (Math.random()-0.5)*6);
+    scene.add(redChicken);
 }
 
 function updateAnomalies(dt) {
     skyTimer -= dt;
     if(skyTimer <= 0) {
-        skyDark = !skyDark;
-        skyTimer = skyDark ? 15 + Math.random()*20 : 50 + Math.random()*40;
-        let c = skyDark ? new THREE.Color(0x000000) : skyColor;
-        scene.background = c;
+        skyDark = !skyDark; 
+        skyTimer = skyDark ? 20 + Math.random()*15 : 60 + Math.random()*30;
+        let c = skyDark ? new THREE.Color(0x000000) : skyColor; 
+        scene.background = c; 
         scene.fog.color = c;
     }
-
-    anomalyTimer += dt;
-    if(anomalyTimer > 25) {
-        anomalyTimer = 0;
-        if(Math.random() < 0.6) spawnHerobrin();
+    
+    anomalyTimer += dt; 
+    if(anomalyTimer > 30) { 
+        anomalyTimer = 0; 
+        if(Math.random() < 0.5) spawnHerobrin(); 
     }
-
-    if(herobrinMesh) {
-        herobrinMesh.lookAt(player.pos.x, herobrinMesh.position.y, player.pos.z);
-        if(player.pos.distanceTo(herobrinMesh.position) < 5) {
-            scene.remove(herobrinMesh);
-            herobrinMesh = null;
+    
+    if(herobrin) {
+        herobrin.update(dt);
+        if(player.pos.distanceTo(herobrin.group.position) < 5) {
+            scene.remove(herobrin.group); 
+            herobrin = null; 
             document.getElementById('warning-text').style.display = 'none';
-            playScreamSound();
+            playScreamSound(); 
             document.getElementById('screamer-overlay').style.display = 'block';
-            setTimeout(() => document.getElementById('screamer-overlay').style.display = 'none', 300);
+            setTimeout(() => document.getElementById('screamer-overlay').style.display = 'none', 350);
         }
     }
-    if(redChickenMesh) {
-        redChickenMesh.position.x += Math.sin(Date.now()*0.002)*0.02;
-    }
+    npcs.forEach(n => n.update(dt));
 }
 
-// --- НАСТРОЙКИ УСТРОЙСТВ И МЕНЮ ---
-let isMobile = false;
-let isLocked = false;
+// --- ПОЛНОЦЕННОЕ РАЗВЕРНУТОЕ УПРАВЛЕНИЕ ---
+let isMobile = false; 
+let isLocked = false; 
 let selectedBlock = 'grass';
 
-document.getElementById('choose-pc').onclick = function() {
-    isMobile = false;
-    document.getElementById('platform-menu').style.display = 'none';
-    document.getElementById('main-menu').style.display = 'flex';
+document.getElementById('choose-pc').onclick = function() { 
+    isMobile = false; 
+    document.getElementById('platform-menu').style.display = 'none'; 
+    document.getElementById('main-menu').style.display = 'flex'; 
 };
-document.getElementById('choose-mobile').onclick = function() {
-    isMobile = true;
-    document.getElementById('platform-menu').style.display = 'none';
-    document.getElementById('main-menu').style.display = 'flex';
-    document.getElementById('mobile-controls').style.display = 'block';
+document.getElementById('choose-mobile').onclick = function() { 
+    isMobile = true; 
+    document.getElementById('platform-menu').style.display = 'none'; 
+    document.getElementById('main-menu').style.display = 'flex'; 
+    document.getElementById('mobile-controls').style.display = 'block'; 
 };
 
-function startGame(mode, serverCode = "") {
-    document.getElementById('main-menu').style.display = 'none';
+function startGame(mode, code = "") {
+    document.getElementById('main-menu').style.display = 'none'; 
     document.getElementById('game-ui').style.display = 'block';
+    document.getElementById('game-mode').innerText = mode; 
+    document.getElementById('debug-server-code').innerText = code ? "#" + code : "Локально";
     
-    document.getElementById('game-mode').innerText = mode;
-    document.getElementById('debug-server-code').innerText = serverCode ? "#" + serverCode : "Локально";
-
-    initAudio();
+    initAudio(); 
     playAmbientGloom();
-    updateWorld();
-    if(!isMobile) document.body.requestPointerLock();
-    else isLocked = true;
+    
+    // Спавн 6 классических NPC
+    for(let i = 0; i < 6; i++) {
+        npcs.push(new AlphaNPC((Math.random() - 0.5) * 40, (Math.random() - 0.5) * 40, false));
+    }
+    
+    updateWorld(); 
+    if(!isMobile) document.body.requestPointerLock(); else isLocked = true;
 }
 
-// Кнопка одиночки
-document.getElementById('start-solo').onclick = function() {
-    startGame("Выживание", "");
+document.getElementById('start-solo').onclick = () => startGame("Выживание", "");
+document.getElementById('start-multi').onclick = () => document.getElementById('server-modal').style.display = 'block';
+document.getElementById('connect-confirm-btn').onclick = () => {
+    let c = document.getElementById('server-code-input').value.trim();
+    if(c.length !== 3 || isNaN(c)) return alert("Нужно ровно 3 цифры!");
+    document.getElementById('server-modal').style.display = 'none'; 
+    startGame("Мультиплеер", c);
 };
 
-// Кнопка Мультиплеера: вызывает модалку ввода кода
-document.getElementById('start-multi').onclick = function() {
-    document.getElementById('server-modal').style.display = 'block';
-};
-
-// Кнопка подтверждения ввода кода (3 цифры)
-document.getElementById('connect-confirm-btn').onclick = function() {
-    let code = document.getElementById('server-code-input').value.trim();
-    if(code.length !== 3 || isNaN(code)) {
-        alert("Код должен состоять строго из 3 цифр!");
-        return;
-    }
-    document.getElementById('server-modal').style.display = 'none';
-    startGame("Мультиплеер", code);
-};
-
-// --- УПРАВЛЕНИЕ (ПК И СЕНСОР) ---
+// Ввод клавиатуры (ПК)
 const keys = { w: false, a: false, s: false, d: false, space: false };
 window.addEventListener('keydown', (e) => {
-    if(e.code === 'Space') keys.space = true;
-    if(e.key === 'w' || e.key === 'ц') keys.w = true;
-    if (e.key === 's' || e.key === 'ы') keys.s = true;
-    if (e.key === 'a' || e.key === 'ф') keys.a = true;
-    if (e.key === 'd' || e.key === 'в') keys.d = true;
-    if (['1','2','3','4','5','6','7','8'].includes(e.key)) {
-        let idx = parseInt(e.key)-1;
-        let slots = document.querySelectorAll('.slot');
-        document.querySelectorAll('.slot').forEach(s=>s.classList.remove('active'));
-        slots[idx].classList.add('active');
+    if(e.code === 'Space') keys.space = true; 
+    if(e.key === 'w' || e.key === 'ц') keys.w = true; 
+    if(e.key === 's' || e.key === 'ы') keys.s = true; 
+    if(e.key === 'a' || e.key === 'ф') keys.a = true; 
+    if(e.key === 'd' || e.key === 'в') keys.d = true;
+    
+    if(['1','2','3','4','5','6','7','8'].includes(e.key)) {
+        let slots = document.querySelectorAll('.slot'); 
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('active'));
+        let idx = parseInt(e.key) - 1; 
+        slots[idx].classList.add('active'); 
         selectedBlock = slots[idx].dataset.block;
     }
 });
 window.addEventListener('keyup', (e) => {
-    if(e.code === 'Space') keys.space = false;
-    if(e.key === 'w' || e.key === 'ц') keys.w = false;
-    if (e.key === 's' || e.key === 'ы') keys.s = false;
-    if (e.key === 'a' || e.key === 'ф') keys.a = false;
-    if (e.key === 'd' || e.key === 'в') keys.d = false;
+    if(e.code === 'Space') keys.space = false; 
+    if(e.key === 'w' || e.key === 'ц') keys.w = false; 
+    if(e.key === 's' || e.key === 'ы') keys.s = false; 
+    if(e.key === 'a' || e.key === 'ф') keys.a = false; 
+    if(e.key === 'd' || e.key === 'в') keys.d = false;
 });
 
+// Клик по слотам хотбара
 document.querySelectorAll('.slot').forEach(slot => {
-    slot.onclick = function(e) {
-        e.stopPropagation();
-        document.querySelectorAll('.slot').forEach(s=>s.classList.remove('active'));
-        slot.classList.add('active');
+    slot.addEventListener('pointerdown', (e) => {
+        e.stopPropagation(); 
+        document.querySelectorAll('.slot').forEach(s => s.classList.remove('active'));
+        slot.classList.add('active'); 
         selectedBlock = slot.dataset.block;
-    }
+    });
 });
 
+// Постановка / разрушение блоков
 function buildAction(isDestroy) {
-    const raycaster = new THREE.Raycaster();
+    const raycaster = new THREE.Raycaster(); 
     raycaster.setFromCamera(new THREE.Vector2(0, 0), camera);
     const intersects = raycaster.intersectObjects(scene.children, true);
+    
     if(intersects.length > 0 && intersects[0].distance < 6) {
-        let hit = intersects[0];
-        let p = hit.point; let n = hit.face.normal;
-        let bx = Math.round(p.x - n.x*0.5), by = Math.round(p.y - n.y*0.5), bz = Math.round(p.z - n.z*0.5);
+        let hit = intersects[0], p = hit.point, n = hit.face.normal;
+        let bx = Math.round(p.x - n.x * 0.5), by = Math.round(p.y - n.y * 0.5), bz = Math.round(p.z - n.z * 0.5);
         
         if(isDestroy) {
-            worldBlocks.delete(blockKey(bx,by,bz));
+            worldBlocks.delete(blockKey(bx, by, bz)); 
         } else {
-            worldBlocks.set(blockKey(bx+n.x, by+n.y, bz+n.z), selectedBlock);
+            worldBlocks.set(blockKey(bx + n.x, by + n.y, bz + n.z), selectedBlock);
         }
-        chunks.clear();
-        scene.children = scene.children.filter(c => c.type !== "Group" || c === herobrinMesh || c === redChickenMesh);
+        
+        chunks.clear(); 
+        scene.children = scene.children.filter(c => c.type !== "Group");
+        npcs.forEach(n => scene.add(n.group)); 
+        if(herobrin) scene.add(herobrin.group); 
+        if(redChicken) scene.add(redChicken);
         updateWorld();
     }
 }
-window.addEventListener('mousedown', (e) => { if(!isMobile && isLocked) buildAction(e.button === 0); });
-document.getElementById('m-destroy').onclick = () => buildAction(true);
-document.getElementById('m-build').onclick = () => buildAction(false);
-document.getElementById('jump-btn').onclick = () => { player.vel.y = 7.5; };
 
+// Слушатели событий мыши ПК
+window.addEventListener('mousedown', (e) => { 
+    if(!isMobile && isLocked) buildAction(e.button === 0); 
+});
+
+// Кнопки сенсора (Мобильные)
+document.getElementById('m-destroy').addEventListener('pointerdown', () => buildAction(true));
+document.getElementById('m-build').addEventListener('pointerdown', () => buildAction(false));
+document.getElementById('jump-btn').addEventListener('pointerdown', () => { player.vel.y = 7.5; });
+
+// Обзор мышью на ПК
 let pitch = 0, yaw = 0;
 document.addEventListener('mousemove', (e) => {
     if (!isLocked || isMobile) return;
-    yaw -= e.movementX * 0.0025; pitch -= e.movementY * 0.0025;
-    pitch = Math.max(-Math.PI/2+0.05, Math.min(Math.PI/2-0.05, pitch));
+    yaw -= e.movementX * 0.0025; 
+    pitch -= e.movementY * 0.0025;
+    pitch = Math.max(-Math.PI/2 + 0.05, Math.min(Math.PI/2 - 0.05, pitch));
     camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
 });
 
-let touchStartPos = new THREE.Vector2();
+// Изолированный сенсорный обзор (Только правая половина экрана)
+let touchStart = new THREE.Vector2();
 window.addEventListener('touchstart', (e) => {
-    let t = e.touches[0];
-    if(t.clientX > window.innerWidth / 2) { touchStartPos.set(t.clientX, t.clientY); }
+    for(let i = 0; i < e.changedTouches.length; i++) {
+        let t = e.changedTouches[i]; 
+        if(t.clientX > window.innerWidth / 2) { 
+            touchStart.set(t.clientX, t.clientY); 
+        }
+    }
 });
 window.addEventListener('touchmove', (e) => {
-    let t = e.touches[0];
-    if(t.clientX > window.innerWidth / 2) {
-        let dx = t.clientX - touchStartPos.x;
-        let dy = t.clientY - touchStartPos.y;
-        yaw -= dx * 0.005; pitch -= dy * 0.005;
-        pitch = Math.max(-Math.PI/2+0.05, Math.min(Math.PI/2-0.05, pitch));
-        camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
-        touchStartPos.set(t.clientX, t.clientY);
+    for(let i = 0; i < e.touches.length; i++) {
+        let t = e.touches[i];
+        if(t.clientX > window.innerWidth / 2) {
+            let dx = t.clientX - touchStart.x, dy = t.clientY - touchStart.y;
+            yaw -= dx * 0.005; 
+            pitch -= dy * 0.005;
+            pitch = Math.max(-Math.PI/2 + 0.05, Math.min(Math.PI/2 - 0.05, pitch));
+            camera.quaternion.setFromEuler(new THREE.Euler(pitch, yaw, 0, 'YXZ'));
+            touchStart.set(t.clientX, t.clientY);
+        }
     }
 });
 
-let joyActive = false, joyStart = new THREE.Vector2(100, window.innerHeight - 100), joyMove = new THREE.Vector2();
+// Виртуальный джойстик (Левая половина экрана)
+let joyActive = false;
+let joyStart = new THREE.Vector2(85, window.innerHeight - 85);
+let joyMove = new THREE.Vector2();
 const stick = document.getElementById('joystick-stick');
+
 window.addEventListener('touchstart', (e) => {
-    let t = e.touches[0];
-    if(t.clientX < window.innerWidth/2) { joyActive = true; joyStart.set(t.clientX, t.clientY); }
+    for(let i = 0; i < e.changedTouches.length; i++) {
+        let t = e.changedTouches[i]; 
+        if(t.clientX < window.innerWidth / 2) { 
+            joyActive = true; 
+            joyStart.set(t.clientX, t.clientY); 
+        }
+    }
 });
 window.addEventListener('touchmove', (e) => {
     if(!joyActive) return;
-    let t = e.touches[0];
-    let dist = Math.min(40, joyStart.distanceTo(new THREE.Vector2(t.clientX, t.clientY)));
-    let angle = Math.atan2(t.clientY - joyStart.y, t.clientX - joyStart.x);
-    joyMove.set(Math.cos(angle)*dist, Math.sin(angle)*dist);
-    stick.style.transform = `translate(${joyMove.x}px, ${joyMove.y}px)`;
+    for(let i = 0; i < e.touches.length; i++) {
+        let t = e.touches[i];
+        if(t.clientX < window.innerWidth / 2) {
+            let dist = Math.min(35, joyStart.distanceTo(new THREE.Vector2(t.clientX, t.clientY)));
+            let angle = Math.atan2(t.clientY - joyStart.y, t.clientX - joyStart.x);
+            joyMove.set(Math.cos(angle) * dist, Math.sin(angle) * dist);
+            stick.style.transform = `translate(${joyMove.x}px, ${joyMove.y}px)`;
+        }
+    }
 });
-window.addEventListener('touchend', () => { joyActive = false; joyMove.set(0,0); stick.style.transform = 'none'; });
+window.addEventListener('touchend', (e) => {
+    for(let i = 0; i < e.changedTouches.length; i++) {
+        if(e.changedTouches[i].clientX < window.innerWidth / 2) { 
+            joyActive = false; 
+            joyMove.set(0, 0); 
+            stick.style.transform = 'none'; 
+        }
+    }
+});
 
-document.addEventListener('pointerlockchange', () => { if(!isMobile) isLocked = document.pointerLockElement === document.body; });
+document.addEventListener('pointerlockchange', () => { 
+    if(!isMobile) isLocked = document.pointerLockElement === document.body; 
+});
 
-// --- ИГРОВОЙ ЦИКЛ ---
+// --- СИСТЕМНЫЙ ИГРОВОЙ ЦИКЛ ---
 const clock = new THREE.Clock();
 function loop() {
-    requestAnimationFrame(loop);
+    requestAnimationFrame(loop); 
     const dt = Math.min(clock.getDelta(), 0.1);
-
+    
     if (isLocked) {
         let moveDir = new THREE.Vector3();
         const front = new THREE.Vector3(0, 0, -1).applyQuaternion(camera.quaternion);
         const side = new THREE.Vector3(1, 0, 0).applyQuaternion(camera.quaternion);
-        front.y = 0; front.normalize(); side.y = 0; side.normalize();
+        front.y = 0; front.normalize(); 
+        side.y = 0; side.normalize();
 
         if (isMobile && joyActive) {
-            moveDir.addScaledVector(front, -joyMove.y / 40);
-            moveDir.addScaledVector(side, joyMove.x / 40);
+            moveDir.addScaledVector(front, -joyMove.y / 35); 
+            moveDir.addScaledVector(side, joyMove.x / 35);
         } else {
-            if (keys.w) moveDir.add(front);
+            if (keys.w) moveDir.add(front); 
             if (keys.s) moveDir.sub(front);
-            if (keys.d) moveDir.add(side);
+            if (keys.d) moveDir.add(side); 
             if (keys.a) moveDir.sub(side);
         }
-        moveDir.normalize();
-
-        player.update(dt, moveDir, keys.space);
+        moveDir.normalize(); 
+        player.update(dt, moveDir, keys.space); 
         camera.position.copy(player.pos);
 
-        updateWorld();
+        updateWorld(); 
         updateAnomalies(dt);
-
+        
         document.getElementById('pos-x').innerText = Math.round(player.pos.x);
         document.getElementById('pos-y').innerText = Math.round(player.pos.y);
         document.getElementById('pos-z').innerText = Math.round(player.pos.z);
@@ -601,10 +872,12 @@ function loop() {
     renderer.render(scene, camera);
 }
 
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+window.addEventListener('resize', () => { 
+    camera.aspect = window.innerWidth / window.innerHeight; 
+    camera.updateProjectionMatrix(); 
+    renderer.setSize(window.innerWidth, window.innerHeight); 
 });
+
 loop();
 </script>
 </body>
